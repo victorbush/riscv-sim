@@ -13,26 +13,20 @@ Rv32_hart::Rv32_hart(Memory& memory)
 {
 }
 
+// These types are function pointers to member methods that execute different types of instructions.
+
 typedef void (Rv32_hart::* itype_executor)(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
 typedef void (Rv32_hart::* rtype_executor)(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 typedef void (Rv32_hart::* utype_executor)(Rv32_register_id rd, Rv_utype_imm imm);
 
-//union executor_lookup
-//{
-//	executor_lookup(itype_executor itype) : itype_executor(itype) {}
-//	executor_lookup(rtype_executor rtype) : rtype_executor(rtype) {}
-//
-//	itype_executor itype_executor;
-//	rtype_executor rtype_executor;
-//};
-
-struct instruction_executor
+/** Defines the instruction format and a pointer to the member method that executes the instruction. */
+struct Instruction_executor
 {
-	instruction_executor(itype_executor itype) : execute_itype(itype), type(Rv32_instruction_type::itype) {}
-	instruction_executor(rtype_executor rtype) : execute_rtype(rtype), type(Rv32_instruction_type::rtype) {}
-	instruction_executor(utype_executor utype) : execute_utype(utype), type(Rv32_instruction_type::utype) {}
+	Instruction_executor(itype_executor itype) : execute_itype(itype), format(Rv32_instruction_format::itype) {}
+	Instruction_executor(rtype_executor rtype) : execute_rtype(rtype), format(Rv32_instruction_format::rtype) {}
+	Instruction_executor(utype_executor utype) : execute_utype(utype), format(Rv32_instruction_format::utype) {}
 
-	Rv32_instruction_type type;
+	Rv32_instruction_format format;
 
 	union
 	{
@@ -42,41 +36,8 @@ struct instruction_executor
 	};
 };
 
-//static const map<Rv32i_instruction_type, itype_executor> itype_executor_map = {
-//
-//	{ Rv32i_instruction_type::addi, Rv32_hart::execute_addi },
-//	{ Rv32i_instruction_type::andi, Rv32_hart::execute_andi },
-//	{ Rv32i_instruction_type::ori, Rv32_hart::execute_ori },
-//	{ Rv32i_instruction_type::slli, Rv32_hart::execute_slli },
-//	{ Rv32i_instruction_type::slti, Rv32_hart::execute_slti },
-//	{ Rv32i_instruction_type::sltiu, Rv32_hart::execute_sltiu },
-//	{ Rv32i_instruction_type::srli, Rv32_hart::execute_srli },
-//	{ Rv32i_instruction_type::srai, Rv32_hart::execute_srai },
-//	{ Rv32i_instruction_type::xori, Rv32_hart::execute_xori },
-//};
-//
-//static const map<Rv32i_instruction_type, rtype_executor> rtype_executor_map = {
-//
-//	{ Rv32i_instruction_type::add, Rv32_hart::execute_add },
-//	{ Rv32i_instruction_type::and_, Rv32_hart::execute_and },
-//	{ Rv32i_instruction_type::or_, Rv32_hart::execute_or },
-//	{ Rv32i_instruction_type::sub, Rv32_hart::execute_sub },
-//	{ Rv32i_instruction_type::sll, Rv32_hart::execute_sll },
-//	{ Rv32i_instruction_type::slt, Rv32_hart::execute_slt },
-//	{ Rv32i_instruction_type::sltu, Rv32_hart::execute_sltu },
-//	{ Rv32i_instruction_type::sra, Rv32_hart::execute_sra },
-//	{ Rv32i_instruction_type::srl, Rv32_hart::execute_srl },
-//	{ Rv32i_instruction_type::xor_, Rv32_hart::execute_xor },
-//};
-//
-//static const map<Rv32i_instruction_type, Rv32_instruction_type> instruction_type_map = {
-//
-//	{ Rv32i_instruction_type::add, Rv32_instruction_type::rtype },
-//
-//	{ Rv32i_instruction_type::addi, Rv32_instruction_type::itype },
-//};
-
-static const map<Rv32i_instruction_type, instruction_executor> instruction_executor_map = {
+/** Maps an instruction to the appropriate format and executor method. */
+static const map<Rv32i_instruction_type, Instruction_executor> instruction_executor_map = {
 
 	// I-type
 
@@ -123,38 +84,38 @@ void Rv32_hart::execute_next()
 		throw exception("Not implemented.");
 
 	auto executor = instruction_executor_map.at(next_inst_type);
-	switch (executor.type)
+	switch (executor.format)
 	{
-	case Rv32_instruction_type::btype:
+	case Rv32_instruction_format::btype:
 	{
 		throw exception("Not implemented.");
 	}
 
-	case Rv32_instruction_type::itype:
+	case Rv32_instruction_format::itype:
 	{
 		auto itype = Rv32i_decoder::decode_rv32i_itype(next_inst);
 		(*this.*(executor.execute_itype))(itype.rd, itype.rs1, itype.imm);
 		break;
 	}
 	
-	case Rv32_instruction_type::jtype:
+	case Rv32_instruction_format::jtype:
 	{
 		throw exception("Not implemented.");
 	}
 
-	case Rv32_instruction_type::rtype:
+	case Rv32_instruction_format::rtype:
 	{
 		auto rtype = Rv32i_decoder::decode_rtype(next_inst);
 		(*this.*(executor.execute_rtype))(rtype.rd, rtype.rs1, rtype.rs2);
 		break;
 	}
 
-	case Rv32_instruction_type::stype:
+	case Rv32_instruction_format::stype:
 	{
 		throw exception("Not implemented.");
 	}
 
-	case Rv32_instruction_type::utype:
+	case Rv32_instruction_format::utype:
 	{
 		auto utype = Rv32i_decoder::decode_utype(next_inst);
 		(*this.*(executor.execute_utype))(utype.rd, utype.imm);
@@ -167,109 +128,6 @@ void Rv32_hart::execute_next()
 
 	// Increment PC
 	set_register(Rv32_register_id::pc, get_register(Rv32_register_id::pc) + 4);
-
-	//switch (next_inst_type)
-	//{
-
-	//// u-type
-
-	//case Rv32i_instruction_type::auipc:
-	//{
-	//	auto utype = Rv32i_decoder::decode_utype(next_inst);
-	//	execute_auipc(utype.rd, utype.imm);
-	//	break;
-	//}
-
-	//case Rv32i_instruction_type::lui:
-	//{
-	//	auto utype = Rv32i_decoder::decode_utype(next_inst);
-	//	execute_lui(utype.rd, utype.imm);
-	//	break;
-	//}
-
-	//// i-type
-
-	//case Rv32i_instruction_type::addi:
-	//{
-	//	auto itype = Rv32i_decoder::decode_rv32i_itype(next_inst);
-	//	execute_addi(itype.rd, itype.rs1, itype.imm);
-	//	break;
-	//}
-
-	//case Rv32i_instruction_type::andi:
-	//{
-	//	auto itype = Rv32i_decoder::decode_rv32i_itype(next_inst);
-	//	execute_andi(itype.rd, itype.rs1, itype.imm);
-	//	break;
-	//}
-
-	//case Rv32i_instruction_type::ori:
-	//{
-	//	auto itype = Rv32i_decoder::decode_rv32i_itype(next_inst);
-	//	execute_ori(itype.rd, itype.rs1, itype.imm);
-	//	break;
-	//}
-
-	//case Rv32i_instruction_type::slli:
-	//{
-	//	auto itype = Rv32i_decoder::decode_rv32i_itype(next_inst);
-	//	execute_slli(itype.rd, itype.rs1, itype.imm);
-	//	break;
-	//}
-
-	//case Rv32i_instruction_type::slti:
-	//{
-	//	auto itype = Rv32i_decoder::decode_rv32i_itype(next_inst);
-	//	execute_slti(itype.rd, itype.rs1, itype.imm);
-	//	break;
-	//}
-
-	//case Rv32i_instruction_type::sltiu:
-	//{
-	//	auto itype = Rv32i_decoder::decode_rv32i_itype(next_inst);
-	//	execute_sltiu(itype.rd, itype.rs1, itype.imm);
-	//	break;
-	//}
-
-	//case Rv32i_instruction_type::srai:
-	//{
-	//	auto itype = Rv32i_decoder::decode_rv32i_itype(next_inst);
-	//	execute_srai(itype.rd, itype.rs1, itype.imm);
-	//	break;
-	//}
-
-	//case Rv32i_instruction_type::srli:
-	//{
-	//	auto itype = Rv32i_decoder::decode_rv32i_itype(next_inst);
-	//	execute_srli(itype.rd, itype.rs1, itype.imm);
-	//	break;
-	//}
-
-	//case Rv32i_instruction_type::xori:
-	//{
-	//	auto itype = Rv32i_decoder::decode_rv32i_itype(next_inst);
-	//	execute_xori(itype.rd, itype.rs1, itype.imm);
-	//	break;
-	//}
-
-	//// r-type
-
-	//case Rv32i_instruction_type::add:
-	//{
-	//	auto rtype = Rv32i_decoder::decode_rtype(next_inst);
-	//	execute_add(rtype.rd, rtype.rs1, rtype.rs2);
-	//	break;
-	//}
-
-	//// invalid
-
-	//case Rv32i_instruction_type::invalid:
-	//default:
-	//	throw exception("Invalid instruction.");
-	//}
-
-	//// Increment PC
-	//set_register(Rv32_register_id::pc, get_register(Rv32_register_id::pc) + 4);
 }
 
 void Rv32_hart::execute_add(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)

@@ -145,39 +145,7 @@ enum class Rv32_op_imm_funct : uint8_t
 	srxi = 0b101, // srli and srai share the same funct, difference is bit 30
 };
 
-//
-//enum class Rv32i_opcode_funct : uint16_t
-//{
-//	// op_imm functions
-//
-//	addi = 0b000,
-//	slti = 0b010,
-//	sltiu = 0b011,
-//	xori = 0b100,
-//	ori = 0b110,
-//	andi = 0b111,
-//
-//	// op_imm - r type
-//
-//	slli = 0b001,
-//	srli = 0b101,
-//	srai = 0b0100000101,
-//
-//	// op - r type
-//
-//	add = 0b0000000000,
-//	sub = 0b0100000000,
-//	sll = 0b0000000001,
-//	slt = 0b0000000010,
-//	sltu = 0b0000000011,
-//	xor_ = 0b0000000100,
-//	srl = 0b0000000101,
-//	sra = 0b0100000101,
-//	or_ = 0b0000000110,
-//	and_ = 0b0000000111,
-//};
-
-enum class Rv32_instruction_type // TODO - name these better
+enum class Rv32_instruction_format
 {
 	btype,
 	itype,
@@ -196,19 +164,19 @@ enum class Rv32i_instruction_type
 	miscmem,
 	system,
 
-	lui,     // Load upper immediate
-	auipc,   // Add upper immediate to PR register
-	jal,     // Jump and link
-	jalr,    // Jump and link register (indirect jump)
+	lui,   // Load upper immediate
+	auipc, // Add upper immediate to PR register
+	jal,   // Jump and link
+	jalr,  // Jump and link register (indirect jump)
 
 	// Conditional branches
 
-	beq,  // Branch if rs1 == rs2
-	bne,  // Branch if rs1 != rs2
-	blt,  // Branch if rs1 < rs2 (signed)
-	bltu, // Branch if rs1 < rs2 (unsigned)
-	bge,  // Branch if rs1 >= rs2 (signed)
-	bgeu, // Branch if rs1 >= rs2 (unsigned)
+	beq,   // Branch if rs1 == rs2
+	bne,   // Branch if rs1 != rs2
+	blt,   // Branch if rs1 < rs2 (signed)
+	bltu,  // Branch if rs1 < rs2 (unsigned)
+	bge,   // Branch if rs1 >= rs2 (signed)
+	bgeu,  // Branch if rs1 >= rs2 (unsigned)
 
 	// Op immediate
 
@@ -227,8 +195,8 @@ enum class Rv32i_instruction_type
 
 	// Op
 
-	add,  // Add
-	sub,  // Subtract
+	add,   // Add
+	sub,   // Subtract
 	sll,
 	slt,
 	sltu,
@@ -238,104 +206,6 @@ enum class Rv32i_instruction_type
 	or_,
 	and_,
 };
-
-//struct Rv32i_instruction_mask
-//{
-//	/*
-//	Static defined instruction masks
-//	*/
-
-//	static Rv32i_instruction_mask lui;
-//	static Rv32i_instruction_mask auipc;
-//	static Rv32i_instruction_mask jal;
-//	static Rv32i_instruction_mask jalr;
-
-//	static Rv32i_instruction_mask beq;
-//	static Rv32i_instruction_mask bne;
-//	static Rv32i_instruction_mask blt;
-//	static Rv32i_instruction_mask bge;
-//	static Rv32i_instruction_mask bltu;
-//	static Rv32i_instruction_mask bgeu;
-
-//	static Rv32i_instruction_mask lb;
-//	static Rv32i_instruction_mask lh;
-//	static Rv32i_instruction_mask lw;
-//	static Rv32i_instruction_mask lbu;
-//	static Rv32i_instruction_mask lhu;
-
-//	static Rv32i_instruction_mask sb;
-//	static Rv32i_instruction_mask sh;
-//	static Rv32i_instruction_mask sw;
-
-//	static Rv32i_instruction_mask addi;
-//	static Rv32i_instruction_mask slti;
-//	static Rv32i_instruction_mask sltiu;
-//	static Rv32i_instruction_mask xori;
-//	static Rv32i_instruction_mask ori;
-//	static Rv32i_instruction_mask andi;
-
-//	static Rv32i_instruction_mask slli;
-//	static Rv32i_instruction_mask srli;
-//	static Rv32i_instruction_mask srai;
-
-//	static Rv32i_instruction_mask add;
-//	static Rv32i_instruction_mask sub;
-//	static Rv32i_instruction_mask sll;
-//	static Rv32i_instruction_mask slt;
-//	static Rv32i_instruction_mask sltu;
-//	static Rv32i_instruction_mask xor_;
-//	static Rv32i_instruction_mask srl;
-//	static Rv32i_instruction_mask sra;
-//	static Rv32i_instruction_mask or_;
-//	static Rv32i_instruction_mask and_;
-
-//	static Rv32i_instruction_mask fence;
-//	static Rv32i_instruction_mask ecall;
-//	static Rv32i_instruction_mask ebreak;
-
-//	/*
-//	Creation helpers
-//	*/
-
-//	static Rv32i_instruction_mask create_rtype(uint8_t opcode, uint8_t funct3, uint8_t funct7)
-//	{
-//		return Rv32i_instruction_mask(0b1111111'00000'00000'111'00000'1111111, opcode | (funct3 << 12) | (funct7 << 25));
-//	}
-
-//	static Rv32i_instruction_mask create_itype(uint8_t opcode, uint8_t funct3)
-//	{
-//		return Rv32i_instruction_mask(0b111111111111'00000'111'00000'1111111, opcode | (funct3 << 12));
-//	}
-
-//	static Rv32i_instruction_mask create_stype(uint8_t opcode, uint8_t funct3)
-//	{
-//		return create_itype(opcode, funct3);
-//	}
-
-//	static Rv32i_instruction_mask create_btype(uint8_t opcode, uint8_t funct3)
-//	{
-//		return create_itype(opcode, funct3);
-//	}
-
-//	static Rv32i_instruction_mask create_utype(uint8_t opcode)
-//	{
-//		return Rv32i_instruction_mask(0b00000000000000000000'00000'1111111, opcode);
-//	}
-
-//	static Rv32i_instruction_mask create_jtype(uint8_t opcode)
-//	{
-//		return create_utype(opcode);
-//	}
-
-//	/*
-//	Struct members
-//	*/
-
-//	Rv32i_instruction_mask(uint32_t mask, uint32_t value) : mask(mask), value(value) {}
-
-//	uint32_t mask;  // The bits we use to identify a specific type of instruction
-//	uint32_t value; // The expected value of this instruction after the mask is applied
-//};
 
 struct Rv_rtype_instruction
 {
