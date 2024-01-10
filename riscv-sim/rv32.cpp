@@ -116,7 +116,8 @@ const map<uint32_t, Signature_match> instruction_signature_map2 = {
 	{ create_op_imm_signature(Rv32_op_imm_funct::srxi), resolve_op_imm_shift_right },
 	{ create_op_imm_signature(Rv32_op_imm_funct::xori), Rv32i_instruction_type::xori },
 
-	{ create_op_signature(Rv32_op_funct3::add, Rv32_op_funct7::add), Rv32i_instruction_type::add},
+	{ create_op_signature(Rv32_op_funct3::add, Rv32_op_funct7::add), Rv32i_instruction_type::add },
+	{ create_op_signature(Rv32_op_funct3::sub, Rv32_op_funct7::sub), Rv32i_instruction_type::sub },
 
 };
 
@@ -415,10 +416,6 @@ Rv32i_opcode Rv32i_decoder::get_rv32i_opcode(uint32_t instruction)
 		return rv32i_opcode_map.at(opcode_raw);
 
 	return Rv32i_opcode::invalid;
-}
-
-Rv_itype_imm::Rv_itype_imm() : value(0)
-{
 }
 
 Rv_itype_imm::Rv_itype_imm(uint16_t val)

@@ -78,7 +78,7 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 	{ Rv32i_instruction_type::add, &Rv32_hart::execute_add },
 	//{ Rv32i_instruction_type::and_, &Rv32_hart::execute_and },
 	//{ Rv32i_instruction_type::or_, &Rv32_hart::execute_or },
-	//{ Rv32i_instruction_type::sub, &Rv32_hart::execute_sub },
+	{ Rv32i_instruction_type::sub, &Rv32_hart::execute_sub },
 	//{ Rv32i_instruction_type::sll, &Rv32_hart::execute_sll },
 	//{ Rv32i_instruction_type::slt, &Rv32_hart::execute_slt },
 	//{ Rv32i_instruction_type::sltu, &Rv32_hart::execute_sltu },
@@ -237,6 +237,13 @@ void Rv32_hart::execute_srli(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype
 	uint32_t source = get_register(rs1);
 	uint8_t shift_amount = imm.get_shift_amount();
 	set_register(rd, source >> shift_amount);
+}
+
+void Rv32_hart::execute_sub(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+{
+	uint32_t rs1_val = get_register(rs1);
+	uint32_t rs2_val = get_register(rs2);
+	set_register(rd, rs1_val - rs2_val);
 }
 
 void Rv32_hart::execute_xori(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)

@@ -196,6 +196,25 @@ TEST(execute_next, SRLI) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
 }
 
+TEST(execute_next, SUB) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_sub(Rv32_register_id::x2, Rv32_register_id::x3, Rv32_register_id::x4);
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x3, 4);
+	hart.set_register(Rv32_register_id::x4, 10);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), -6);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x4), 10);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
+}
+
 TEST(execute_next, XORI) {
 
 	auto memory = Simple_memory_subsystem();
@@ -562,6 +581,31 @@ TEST(execute_srli, UnsignedSource) {
 	hart.set_register(Rv32_register_id::x2, 0b0000'0000'0000'0000'0000'0000'0001'0011);
 	hart.execute_srli(Rv32_register_id::x1, Rv32_register_id::x2, 2);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b0000'0000'0000'0000'0000'0000'0000'0100);
+}
+
+/* --------------------------------------------------------
+SUB
+-------------------------------------------------------- */
+
+TEST(execute_sub, DifferentRegisters) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 4);
+	hart.set_register(Rv32_register_id::x3, 14);
+	hart.execute_sub(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), -10);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 14);
+}
+
+TEST(execute_sub, SameRegisters) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x1, -4);
+	hart.execute_sub(Rv32_register_id::x1, Rv32_register_id::x1, Rv32_register_id::x1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0);
 }
 
 /* --------------------------------------------------------
