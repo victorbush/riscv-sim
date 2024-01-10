@@ -15,29 +15,47 @@ Rv32_hart::Rv32_hart(Memory& memory)
 
 // These types are function pointers to member methods that execute different types of instructions.
 
+typedef void (Rv32_hart::* btype_executor)(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm);
 typedef void (Rv32_hart::* itype_executor)(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
+typedef void (Rv32_hart::* jtype_executor)(Rv32_register_id rd, Rv_jtype_imm imm);
 typedef void (Rv32_hart::* rtype_executor)(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
+typedef void (Rv32_hart::* stype_executor)(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm);
 typedef void (Rv32_hart::* utype_executor)(Rv32_register_id rd, Rv_utype_imm imm);
 
 /** Defines the instruction format and a pointer to the member method that executes the instruction. */
 struct Instruction_executor
 {
+	Instruction_executor(btype_executor btype) : execute_btype(btype), format(Rv32_instruction_format::btype) {}
 	Instruction_executor(itype_executor itype) : execute_itype(itype), format(Rv32_instruction_format::itype) {}
+	Instruction_executor(jtype_executor jtype) : execute_jtype(jtype), format(Rv32_instruction_format::jtype) {}
 	Instruction_executor(rtype_executor rtype) : execute_rtype(rtype), format(Rv32_instruction_format::rtype) {}
+	Instruction_executor(stype_executor stype) : execute_stype(stype), format(Rv32_instruction_format::stype) {}
 	Instruction_executor(utype_executor utype) : execute_utype(utype), format(Rv32_instruction_format::utype) {}
 
 	Rv32_instruction_format format;
 
 	union
 	{
+		btype_executor execute_btype;
 		itype_executor execute_itype;
+		jtype_executor execute_jtype;
 		rtype_executor execute_rtype;
+		stype_executor execute_stype;
 		utype_executor execute_utype;
 	};
 };
 
 /** Maps an instruction to the appropriate format and executor method. */
 static const map<Rv32i_instruction_type, Instruction_executor> instruction_executor_map = {
+
+	// B-type
+
+	//{ Rv32i_instruction_type::beq, &Rv32_hart::execute_beq },
+	//{ Rv32i_instruction_type::bge, &Rv32_hart::execute_bge },
+	//{ Rv32i_instruction_type::bgeu, &Rv32_hart::execute_bgeu },
+	//{ Rv32i_instruction_type::blt, &Rv32_hart::execute_blt },
+	//{ Rv32i_instruction_type::bltu, &Rv32_hart::execute_bltu },
+	//{ Rv32i_instruction_type::bne, &Rv32_hart::execute_bne },
 
 	// I-type
 
@@ -51,6 +69,10 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 	{ Rv32i_instruction_type::srai, &Rv32_hart::execute_srai },
 	{ Rv32i_instruction_type::xori, &Rv32_hart::execute_xori },
 
+	// J-type
+
+
+
 	// R-type
 
 	{ Rv32i_instruction_type::add, &Rv32_hart::execute_add },
@@ -63,6 +85,10 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 	//{ Rv32i_instruction_type::sra, &Rv32_hart::execute_sra },
 	//{ Rv32i_instruction_type::srl, &Rv32_hart::execute_srl },
 	//{ Rv32i_instruction_type::xor_, &Rv32_hart::execute_xor },
+
+	// S-type
+
+
 
 	// U-type
 
@@ -83,7 +109,7 @@ void Rv32_hart::execute_next()
 	if (!instruction_executor_map.contains(next_inst_type))
 		throw exception("Not implemented.");
 
-	auto executor = instruction_executor_map.at(next_inst_type);
+	auto& executor = instruction_executor_map.at(next_inst_type);
 	switch (executor.format)
 	{
 	case Rv32_instruction_format::btype:
@@ -155,6 +181,11 @@ void Rv32_hart::execute_auipc(Rv32_register_id rd, Rv_utype_imm imm)
 {
 	uint32_t pc = get_register(Rv32_register_id::pc);
 	set_register(rd, pc + imm.get_decoded());
+}
+
+void Rv32_hart::execute_beq(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm)
+{
+	throw exception("Not implemented.");
 }
 
 void Rv32_hart::execute_lui(Rv32_register_id rd, Rv_utype_imm imm)

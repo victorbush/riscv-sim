@@ -4,6 +4,47 @@
 
 namespace riscv_sim {
 
+/** 12-bit immediate value used by B-type instructions. */
+struct Rv_btype_imm
+{
+	Rv_btype_imm(uint8_t encoded_7to11, uint8_t encoded_25to31);
+
+private:
+	uint8_t encoded_7to11;  // Bits 7 through 11 when encoded
+	uint8_t encoded_25to31; // Bits 25 through 31 when encoded
+};
+
+/** 12-bit immediate value used by I-type instructions. The value is sign extended to 32 bits. The 12th bit determines the sign. */
+struct Rv_itype_imm
+{
+	Rv_itype_imm(uint16_t val);
+
+	int32_t to_i32() const;
+	uint32_t to_u32() const;
+
+	/** For shift immediate instructions, gets the shift amount. */
+	uint8_t get_shift_amount() const;
+
+private:
+	uint32_t value;
+};
+
+/** 20-bit immediate value used by J-type instructions. */
+struct Rv_jtype_imm
+{
+	Rv_jtype_imm(uint32_t encoded);
+};
+
+/** 12-bit immediate value used by S-type instructions. */
+struct Rv_stype_imm
+{
+	Rv_stype_imm(uint8_t encoded_7to11, uint8_t encoded_25to31);
+
+private:
+	uint8_t encoded_7to11;  // Bits 7 through 11 when encoded
+	uint8_t encoded_25to31; // Bits 25 through 31 when encoded
+};
+
 /** 20-bit immediate value used by U-type instructions. These bits are used as the high 20 bits for a 32-bit value. */
 struct Rv_utype_imm
 {
@@ -22,22 +63,6 @@ struct Rv_utype_imm
 private:
 	uint32_t _encoded;
 	uint32_t _decoded;
-};
-
-/** 12-bit immediate value used by I-type instructions. The value is sign extended to 32 bits. The 12th bit determines the sign. */
-struct Rv_itype_imm
-{
-	Rv_itype_imm();
-	Rv_itype_imm(uint16_t val);
-
-	int32_t to_i32() const;
-	uint32_t to_u32() const;
-
-	/** For shift immediate instructions, gets the shift amount. */
-	uint8_t get_shift_amount() const;
-
-private:
-	uint32_t value;
 };
 
 enum class Rv32_register_id : uint8_t
