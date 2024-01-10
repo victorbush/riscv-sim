@@ -117,6 +117,7 @@ const map<uint32_t, Signature_match> instruction_signature_map2 = {
 	{ create_op_imm_signature(Rv32_op_imm_funct::xori), Rv32i_instruction_type::xori },
 
 	{ create_op_signature(Rv32_op_funct3::add, Rv32_op_funct7::add), Rv32i_instruction_type::add },
+	{ create_op_signature(Rv32_op_funct3::slt, Rv32_op_funct7::slt), Rv32i_instruction_type::slt },
 	{ create_op_signature(Rv32_op_funct3::sub, Rv32_op_funct7::sub), Rv32i_instruction_type::sub },
 
 };
@@ -369,6 +370,11 @@ uint32_t Rv32_encoder::encode_ori(Rv32_register_id rd, Rv32_register_id rs1, uin
 uint32_t Rv32_encoder::encode_slli(Rv32_register_id rd, Rv32_register_id rs1, uint8_t shift_amount)
 {
 	return encode_op_imm(Rv32_op_imm_funct::slli, rd, rs1, 0b11111 & shift_amount);
+}
+
+uint32_t Rv32_encoder::encode_slt(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+{
+	return encode_op(Rv32_op_funct3::slt, Rv32_op_funct7::slt, rd, rs1, rs2);
 }
 
 uint32_t Rv32_encoder::encode_slti(Rv32_register_id rd, Rv32_register_id rs1, uint16_t imm)
