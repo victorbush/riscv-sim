@@ -41,8 +41,8 @@ public:
 	void execute_xor(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	void execute_xori(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
 
-	inline uint32_t get_register(Rv32_register_id register_id);
-	inline void set_register(Rv32_register_id register_id, uint32_t value);
+	uint32_t get_register(Rv32_register_id register_id);
+	void set_register(Rv32_register_id register_id, uint32_t value);
 
 private:
 	Memory& memory;

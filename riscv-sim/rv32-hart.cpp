@@ -253,12 +253,12 @@ void Rv32_hart::execute_xori(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype
 	set_register(rd, source ^ immediate);
 }
 
-inline uint32_t Rv32_hart::get_register(Rv32_register_id register_id)
+uint32_t Rv32_hart::get_register(Rv32_register_id register_id)
 {
 	return registers[static_cast<uint8_t>(register_id)];
 }
 
-inline void Rv32_hart::set_register(Rv32_register_id register_id, uint32_t value)
+void Rv32_hart::set_register(Rv32_register_id register_id, uint32_t value)
 {
 	// x0 is hardcoded to 0 and can't be changed. Writes to x0 are treated as a nop.
 	if (register_id == Rv32_register_id::x0)

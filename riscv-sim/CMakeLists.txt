@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.14)
 
 # Add source to this project's executable.
 add_executable (riscv-sim
-	"memory.cpp" "memory.h"
+	"memory.h"
 	"riscv-sim.cpp" "riscv-sim.h"
 	"rv32.cpp" "rv32.h"
 	"rv32-hart.cpp" "rv32-hart.h"
