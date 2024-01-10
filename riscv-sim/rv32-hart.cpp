@@ -81,7 +81,7 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 	{ Rv32i_instruction_type::sub, &Rv32_hart::execute_sub },
 	//{ Rv32i_instruction_type::sll, &Rv32_hart::execute_sll },
 	{ Rv32i_instruction_type::slt, &Rv32_hart::execute_slt },
-	//{ Rv32i_instruction_type::sltu, &Rv32_hart::execute_sltu },
+	{ Rv32i_instruction_type::sltu, &Rv32_hart::execute_sltu },
 	//{ Rv32i_instruction_type::sra, &Rv32_hart::execute_sra },
 	//{ Rv32i_instruction_type::srl, &Rv32_hart::execute_srl },
 	//{ Rv32i_instruction_type::xor_, &Rv32_hart::execute_xor },
@@ -200,18 +200,18 @@ void Rv32_hart::execute_ori(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_
 	set_register(rd, source | immediate);
 }
 
-void Rv32_hart::execute_slt(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
-{
-	int32_t rs1_val = get_register(rs1);
-	int32_t rs2_val = get_register(rs2);
-	set_register(rd, rs1_val < rs2_val);
-}
-
 void Rv32_hart::execute_slli(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
 {
 	uint32_t source = get_register(rs1);
 	uint8_t shift_amount = imm.get_shift_amount();
 	set_register(rd, source << shift_amount);
+}
+
+void Rv32_hart::execute_slt(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+{
+	int32_t rs1_val = get_register(rs1);
+	int32_t rs2_val = get_register(rs2);
+	set_register(rd, rs1_val < rs2_val);
 }
 
 void Rv32_hart::execute_slti(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
@@ -228,6 +228,13 @@ void Rv32_hart::execute_sltiu(Rv32_register_id rd, Rv32_register_id rs1, Rv_ityp
 	uint32_t source = get_register(rs1);
 	uint32_t immediate = imm.to_u32();
 	set_register(rd, (source < immediate) ? 1 : 0);
+}
+
+void Rv32_hart::execute_sltu(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+{
+	uint32_t rs1_val = get_register(rs1);
+	uint32_t rs2_val = get_register(rs2);
+	set_register(rd, rs1_val < rs2_val);
 }
 
 void Rv32_hart::execute_srai(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)

@@ -137,13 +137,13 @@ TEST(execute_next, SLT) {
 	memory.write_32(0x500, instruction);
 
 	hart.set_register(Rv32_register_id::pc, 0x500);
-	hart.set_register(Rv32_register_id::x3, 4);
-	hart.set_register(Rv32_register_id::x4, 10);
+	hart.set_register(Rv32_register_id::x3, -1);
+	hart.set_register(Rv32_register_id::x4, 1);
 	hart.execute_next();
 
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 1);
-	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 4);
-	EXPECT_EQ(hart.get_register(Rv32_register_id::x4), 10);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), -1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x4), 1);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
 }
 
@@ -178,6 +178,25 @@ TEST(execute_next, SLTIU) {
 
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), -3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
+}
+
+TEST(execute_next, SLTU) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_sltu(Rv32_register_id::x2, Rv32_register_id::x3, Rv32_register_id::x4);
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x3, 4);
+	hart.set_register(Rv32_register_id::x4, 10);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x4), 10);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
 }
 
@@ -432,7 +451,7 @@ TEST(execute_slli, ValidInstruction) {
 }
 
 /* --------------------------------------------------------
-SLTI
+SLT
 -------------------------------------------------------- */
 
 TEST(execute_slt, LessThan) {
@@ -614,6 +633,69 @@ TEST(execute_sltiu, ImmIsOne) {
 	// rs1 == 2
 	hart.set_register(Rv32_register_id::x5, 2);
 	hart.execute_sltiu(Rv32_register_id::x1, Rv32_register_id::x5, 1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0);
+}
+
+/* --------------------------------------------------------
+SLTU
+-------------------------------------------------------- */
+
+TEST(execute_sltu, LessThan) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 2);
+	hart.set_register(Rv32_register_id::x3, 3);
+	hart.execute_sltu(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 1);
+
+	// -2 unsigned is greater than 3
+	hart.set_register(Rv32_register_id::x2, -2);
+	hart.set_register(Rv32_register_id::x3, 3);
+	hart.execute_sltu(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0);
+
+	// -2 unsigned is less than -1 unsigned
+	hart.set_register(Rv32_register_id::x2, -2);
+	hart.set_register(Rv32_register_id::x3, -1);
+	hart.execute_sltu(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 1);
+}
+
+TEST(execute_sltu, Equal) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 2);
+	hart.set_register(Rv32_register_id::x3, 2);
+	hart.execute_sltu(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0);
+
+	hart.set_register(Rv32_register_id::x2, -2);
+	hart.set_register(Rv32_register_id::x3, -2);
+	hart.execute_sltu(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0);
+}
+
+TEST(execute_sltu, GreaterThan) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 3);
+	hart.set_register(Rv32_register_id::x3, 2);
+	hart.execute_sltu(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0);
+
+	// 2 is less than -3 unsigned
+	hart.set_register(Rv32_register_id::x2, 2);
+	hart.set_register(Rv32_register_id::x3, -3);
+	hart.execute_sltu(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 1);
+
+	// -3 unsigned is greater than -4 unsigned
+	hart.set_register(Rv32_register_id::x2, -3);
+	hart.set_register(Rv32_register_id::x3, -4);
+	hart.execute_sltu(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0);
 }
 
