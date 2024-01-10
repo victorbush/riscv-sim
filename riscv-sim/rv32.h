@@ -177,6 +177,16 @@ enum class Rv32_op_imm_funct : uint8_t
 //	and_ = 0b0000000111,
 //};
 
+enum class Rv32_instruction_type // TODO - name these better
+{
+	btype,
+	itype,
+	jtype,
+	rtype,
+	stype,
+	utype,
+};
+
 enum class Rv32i_instruction_type
 {
 	invalid,
