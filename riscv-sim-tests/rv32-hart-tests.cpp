@@ -149,6 +149,25 @@ TEST(execute_next, ORI) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
 }
 
+TEST(execute_next, SLL) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_sll(Rv32_register_id::x2, Rv32_register_id::x3, Rv32_register_id::x4);
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x3, 0b1101);
+	hart.set_register(Rv32_register_id::x4, 3);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0b1101000);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 0b1101);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x4), 3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
+}
+
 TEST(execute_next, SLLI) {
 
 	auto memory = Simple_memory_subsystem();
@@ -542,6 +561,57 @@ TEST(execute_ori, ValidInstruction) {
 	hart.set_register(Rv32_register_id::x2, 0b01000000000000110);
 	hart.execute_ori(Rv32_register_id::x1, Rv32_register_id::x2, 0b1001);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b01000000000001111);
+}
+
+/* --------------------------------------------------------
+SLL
+-------------------------------------------------------- */
+
+TEST(execute_sll, DifferentRegisters) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 1);
+	hart.set_register(Rv32_register_id::x3, 4);
+	hart.execute_sll(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b10000);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 4);
+}
+
+TEST(execute_sll, SameRegisters) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x1, 0b10);
+	hart.execute_sll(Rv32_register_id::x1, Rv32_register_id::x1, Rv32_register_id::x1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b1000);
+}
+
+TEST(execute_sll, MoreThanFiveBitsSetInRs2) {
+
+	// Shift amount is in RS2, but only the low 5 bits are used.
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 1);
+	hart.set_register(Rv32_register_id::x3, 0b100001);
+	hart.execute_sll(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 2);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 0b100001);
+}
+
+TEST(execute_sll, ShiftOutOfHighBit) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 0xFFFFFFFF);
+	hart.set_register(Rv32_register_id::x3, 8);
+	hart.execute_sll(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0xFFFFFF00);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0xFFFFFFFF);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 8);
 }
 
 /* --------------------------------------------------------
