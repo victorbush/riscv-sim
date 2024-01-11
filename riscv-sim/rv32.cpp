@@ -118,9 +118,14 @@ const map<uint32_t, Signature_match> instruction_signature_map2 = {
 
 	{ create_op_signature(Rv32_op_funct3::add, Rv32_op_funct7::add), Rv32i_instruction_type::add },
 	{ create_op_signature(Rv32_op_funct3::and_, Rv32_op_funct7::and_), Rv32i_instruction_type::and_ },
+	{ create_op_signature(Rv32_op_funct3::or_, Rv32_op_funct7::or_), Rv32i_instruction_type::or_ },
+	{ create_op_signature(Rv32_op_funct3::sll, Rv32_op_funct7::sll), Rv32i_instruction_type::sll },
 	{ create_op_signature(Rv32_op_funct3::slt, Rv32_op_funct7::slt), Rv32i_instruction_type::slt },
 	{ create_op_signature(Rv32_op_funct3::sltu, Rv32_op_funct7::sltu), Rv32i_instruction_type::sltu },
+	{ create_op_signature(Rv32_op_funct3::sra, Rv32_op_funct7::sra), Rv32i_instruction_type::sra },
+	{ create_op_signature(Rv32_op_funct3::srl, Rv32_op_funct7::srl), Rv32i_instruction_type::srl },
 	{ create_op_signature(Rv32_op_funct3::sub, Rv32_op_funct7::sub), Rv32i_instruction_type::sub },
+	{ create_op_signature(Rv32_op_funct3::xor_, Rv32_op_funct7::xor_), Rv32i_instruction_type::xor_ },
 
 };
 

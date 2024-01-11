@@ -113,6 +113,25 @@ TEST(execute_next, LUI) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
 }
 
+TEST(execute_next, OR) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_or(Rv32_register_id::x2, Rv32_register_id::x3, Rv32_register_id::x4);
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x3, 0b1010);
+	hart.set_register(Rv32_register_id::x4, 0b1001);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0b1011);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 0b1010);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x4), 0b1001);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
+}
+
 TEST(execute_next, ORI) {
 
 	auto memory = Simple_memory_subsystem();
@@ -466,6 +485,31 @@ TEST(execute_lui, ValidInstruction) {
 	
 	// Ensure 20-bit immediate is placed in high 20 bits
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b0101'1111'0101'1111'0101'0000'0000'0000);
+}
+
+/* --------------------------------------------------------
+OR
+-------------------------------------------------------- */
+
+TEST(execute_or, DifferentRegisters) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 0b1101);
+	hart.set_register(Rv32_register_id::x3, 0b1011);
+	hart.execute_or(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b1111);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0b1101);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 0b1011);
+}
+
+TEST(execute_or, SameRegisters) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x1, 0b1110);
+	hart.execute_or(Rv32_register_id::x1, Rv32_register_id::x1, Rv32_register_id::x1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b1110);
 }
 
 /* --------------------------------------------------------
