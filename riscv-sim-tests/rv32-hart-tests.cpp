@@ -257,6 +257,25 @@ TEST(execute_next, SLTU) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
 }
 
+TEST(execute_next, SRA) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_sra(Rv32_register_id::x2, Rv32_register_id::x3, Rv32_register_id::x4);
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x3, 0xFF000000);
+	hart.set_register(Rv32_register_id::x4, 8);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0xFFFF0000);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 0xFF000000);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x4), 8);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
+}
+
 TEST(execute_next, SRAI) {
 
 	auto memory = Simple_memory_subsystem();
@@ -271,6 +290,25 @@ TEST(execute_next, SRAI) {
 
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), -1);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), -1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
+}
+
+TEST(execute_next, SRL) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_srl(Rv32_register_id::x2, Rv32_register_id::x3, Rv32_register_id::x4);
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x3, 0xFF000000);
+	hart.set_register(Rv32_register_id::x4, 8);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x00FF0000);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 0xFF000000);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x4), 8);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
 }
 
@@ -877,6 +915,81 @@ TEST(execute_sltu, GreaterThan) {
 }
 
 /* --------------------------------------------------------
+SRA
+-------------------------------------------------------- */
+
+TEST(execute_sra, DifferentRegisters) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 0b100);
+	hart.set_register(Rv32_register_id::x3, 2);
+	hart.execute_sra(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0b100);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 2);
+}
+
+TEST(execute_sra, SameRegisters) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x1, 80);
+	hart.execute_sra(Rv32_register_id::x1, Rv32_register_id::x1, Rv32_register_id::x1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0);
+}
+
+TEST(execute_sra, MoreThanFiveBitsSetInRs2) {
+
+	// Shift amount is in RS2, but only the low 5 bits are used.
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 0b100);
+	hart.set_register(Rv32_register_id::x3, 0b100001);
+	hart.execute_sra(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b10);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0b100);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 0b100001);
+}
+
+TEST(execute_sra, ShiftWithSignBitSet) {
+
+	// Arithmetic shift fills high bits with the sign bit
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 0xFF000000);
+	hart.set_register(Rv32_register_id::x3, 8);
+	hart.execute_sra(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0xFFFF0000);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0xFF000000);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 8);
+}
+
+/* --------------------------------------------------------
+SRAI
+-------------------------------------------------------- */
+
+TEST(execute_srai, SignedSource) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 0b1000'0000'0000'0000'0000'0000'0001'0011);
+	hart.execute_srai(Rv32_register_id::x1, Rv32_register_id::x2, (1 << 10) | 2); // The (1 << 10) sets the bit that indicates this is an arithmetic shift
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b1110'0000'0000'0000'0000'0000'0000'0100);
+}
+
+TEST(execute_srai, UnsignedSource) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 0b0000'0000'0000'0000'0000'0000'0001'0011);
+	hart.execute_srai(Rv32_register_id::x1, Rv32_register_id::x2, (1 << 10) | 2); // The (1 << 10) sets the bit that indicates this is an arithmetic shift
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b0000'0000'0000'0000'0000'0000'0000'0100);
+}
+
+/* --------------------------------------------------------
 SRL
 -------------------------------------------------------- */
 
@@ -927,28 +1040,6 @@ TEST(execute_srl, ShiftWithSignBitSet) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x00FFFFFF);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0xFFFFFFFF);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 8);
-}
-
-/* --------------------------------------------------------
-SRAI
--------------------------------------------------------- */
-
-TEST(execute_srai, SignedSource) {
-
-	auto memory = Simple_memory_subsystem();
-	auto hart = Rv32_hart(memory);
-	hart.set_register(Rv32_register_id::x2, 0b1000'0000'0000'0000'0000'0000'0001'0011);
-	hart.execute_srai(Rv32_register_id::x1, Rv32_register_id::x2, (1 << 10) | 2); // The (1 << 10) sets the bit that indicates this is an arithmetic shift
-	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b1110'0000'0000'0000'0000'0000'0000'0100);
-}
-
-TEST(execute_srai, UnsignedSource) {
-
-	auto memory = Simple_memory_subsystem();
-	auto hart = Rv32_hart(memory);
-	hart.set_register(Rv32_register_id::x2, 0b0000'0000'0000'0000'0000'0000'0001'0011);
-	hart.execute_srai(Rv32_register_id::x1, Rv32_register_id::x2, (1 << 10) | 2); // The (1 << 10) sets the bit that indicates this is an arithmetic shift
-	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b0000'0000'0000'0000'0000'0000'0000'0100);
 }
 
 /* --------------------------------------------------------

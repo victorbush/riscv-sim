@@ -82,7 +82,7 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 	{ Rv32i_instruction_type::sll, &Rv32_hart::execute_sll },
 	{ Rv32i_instruction_type::slt, &Rv32_hart::execute_slt },
 	{ Rv32i_instruction_type::sltu, &Rv32_hart::execute_sltu },
-	//{ Rv32i_instruction_type::sra, &Rv32_hart::execute_sra },
+	{ Rv32i_instruction_type::sra, &Rv32_hart::execute_sra },
 	{ Rv32i_instruction_type::srl, &Rv32_hart::execute_srl },
 	{ Rv32i_instruction_type::xor_, &Rv32_hart::execute_xor },
 
@@ -259,6 +259,16 @@ void Rv32_hart::execute_sltu(Rv32_register_id rd, Rv32_register_id rs1, Rv32_reg
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
 	set_register(rd, rs1_val < rs2_val);
+}
+
+void Rv32_hart::execute_sra(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+{
+	// Arithmetic right shift on the value in rs1 by the shift amount held in the lower 5 bits of rs2.
+
+	int32_t rs1_val = get_register(rs1);
+	int32_t rs2_val = get_register(rs2);
+	int32_t shift_amount = rs2_val & 0b11111;
+	set_register(rd, rs1_val >> shift_amount);
 }
 
 void Rv32_hart::execute_srai(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
