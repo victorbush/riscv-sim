@@ -877,6 +877,59 @@ TEST(execute_sltu, GreaterThan) {
 }
 
 /* --------------------------------------------------------
+SRL
+-------------------------------------------------------- */
+
+TEST(execute_srl, DifferentRegisters) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 0b100);
+	hart.set_register(Rv32_register_id::x3, 2);
+	hart.execute_srl(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0b100);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 2);
+}
+
+TEST(execute_srl, SameRegisters) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x1, 80);
+	hart.execute_srl(Rv32_register_id::x1, Rv32_register_id::x1, Rv32_register_id::x1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0);
+}
+
+TEST(execute_srl, MoreThanFiveBitsSetInRs2) {
+
+	// Shift amount is in RS2, but only the low 5 bits are used.
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 0b100);
+	hart.set_register(Rv32_register_id::x3, 0b100001);
+	hart.execute_srl(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b10);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0b100);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 0b100001);
+}
+
+TEST(execute_srl, ShiftWithSignBitSet) {
+
+	// Logical shift fills high bits with 0 regardless of sign
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 0xFFFFFFFF);
+	hart.set_register(Rv32_register_id::x3, 8);
+	hart.execute_srl(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x00FFFFFF);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0xFFFFFFFF);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 8);
+}
+
+/* --------------------------------------------------------
 SRAI
 -------------------------------------------------------- */
 
