@@ -291,6 +291,25 @@ TEST(execute_next, SUB) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
 }
 
+TEST(execute_next, XOR) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_xor(Rv32_register_id::x2, Rv32_register_id::x3, Rv32_register_id::x4);
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x3, 0b1010);
+	hart.set_register(Rv32_register_id::x4, 0b1001);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0b0011);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 0b1010);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x4), 0b1001);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
+}
+
 TEST(execute_next, XORI) {
 
 	auto memory = Simple_memory_subsystem();
@@ -853,6 +872,31 @@ TEST(execute_sub, SameRegisters) {
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x1, -4);
 	hart.execute_sub(Rv32_register_id::x1, Rv32_register_id::x1, Rv32_register_id::x1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0);
+}
+
+/* --------------------------------------------------------
+XOR
+-------------------------------------------------------- */
+
+TEST(execute_xor, DifferentRegisters) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x2, 0b1101);
+	hart.set_register(Rv32_register_id::x3, 0b1011);
+	hart.execute_xor(Rv32_register_id::x1, Rv32_register_id::x2, Rv32_register_id::x3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b0110);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0b1101);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 0b1011);
+}
+
+TEST(execute_xor, SameRegisters) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x1, 0b1110);
+	hart.execute_xor(Rv32_register_id::x1, Rv32_register_id::x1, Rv32_register_id::x1);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0);
 }
 

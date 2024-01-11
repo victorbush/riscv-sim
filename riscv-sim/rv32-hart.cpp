@@ -84,7 +84,7 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 	{ Rv32i_instruction_type::sltu, &Rv32_hart::execute_sltu },
 	//{ Rv32i_instruction_type::sra, &Rv32_hart::execute_sra },
 	//{ Rv32i_instruction_type::srl, &Rv32_hart::execute_srl },
-	//{ Rv32i_instruction_type::xor_, &Rv32_hart::execute_xor },
+	{ Rv32i_instruction_type::xor_, &Rv32_hart::execute_xor },
 
 	// S-type
 
@@ -272,6 +272,13 @@ void Rv32_hart::execute_sub(Rv32_register_id rd, Rv32_register_id rs1, Rv32_regi
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
 	set_register(rd, rs1_val - rs2_val);
+}
+
+void Rv32_hart::execute_xor(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+{
+	uint32_t rs1_val = get_register(rs1);
+	uint32_t rs2_val = get_register(rs2);
+	set_register(rd, rs1_val ^ rs2_val);
 }
 
 void Rv32_hart::execute_xori(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
