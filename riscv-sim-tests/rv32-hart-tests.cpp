@@ -113,6 +113,23 @@ TEST(execute_next, LUI) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
 }
 
+TEST(execute_next, NOP) {
+
+	// NOP isn't an actual instruction, it's encoded as ADDI x0, x0, 0.
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_addi(Rv32_register_id::x0, Rv32_register_id::x0, 0);
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x0), 0);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
+}
+
 TEST(execute_next, OR) {
 
 	auto memory = Simple_memory_subsystem();
@@ -471,6 +488,15 @@ TEST(execute_addi, OverflowIgnored) {
 	hart.set_register(Rv32_register_id::x5, 0xFFFFFFFF);
 	hart.execute_addi(Rv32_register_id::x5, Rv32_register_id::x5, 1);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x5), 0);
+}
+
+TEST(execute_addi, NOP) {
+
+	// NOP is encoded as ADDI x0, x0, 0
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.execute_addi(Rv32_register_id::x0, Rv32_register_id::x0, 0);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x0), 0);
 }
 
 /* --------------------------------------------------------
