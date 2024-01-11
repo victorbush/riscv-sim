@@ -76,7 +76,7 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 	// R-type
 
 	{ Rv32i_instruction_type::add, &Rv32_hart::execute_add },
-	//{ Rv32i_instruction_type::and_, &Rv32_hart::execute_and },
+	{ Rv32i_instruction_type::and_, &Rv32_hart::execute_and },
 	//{ Rv32i_instruction_type::or_, &Rv32_hart::execute_or },
 	{ Rv32i_instruction_type::sub, &Rv32_hart::execute_sub },
 	//{ Rv32i_instruction_type::sll, &Rv32_hart::execute_sll },
@@ -168,6 +168,13 @@ void Rv32_hart::execute_addi(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype
 	int32_t source = get_register(rs1);
 	int32_t immediate = imm.to_i32();
 	set_register(rd, source + immediate);
+}
+
+void Rv32_hart::execute_and(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+{
+	uint32_t rs1_val = get_register(rs1);
+	uint32_t rs2_val = get_register(rs2);
+	set_register(rd, rs1_val & rs2_val);
 }
 
 void Rv32_hart::execute_andi(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)

@@ -117,6 +117,7 @@ const map<uint32_t, Signature_match> instruction_signature_map2 = {
 	{ create_op_imm_signature(Rv32_op_imm_funct::xori), Rv32i_instruction_type::xori },
 
 	{ create_op_signature(Rv32_op_funct3::add, Rv32_op_funct7::add), Rv32i_instruction_type::add },
+	{ create_op_signature(Rv32_op_funct3::and_, Rv32_op_funct7::and_), Rv32i_instruction_type::and_ },
 	{ create_op_signature(Rv32_op_funct3::slt, Rv32_op_funct7::slt), Rv32i_instruction_type::slt },
 	{ create_op_signature(Rv32_op_funct3::sltu, Rv32_op_funct7::sltu), Rv32i_instruction_type::sltu },
 	{ create_op_signature(Rv32_op_funct3::sub, Rv32_op_funct7::sub), Rv32i_instruction_type::sub },
@@ -348,6 +349,11 @@ uint32_t Rv32_encoder::encode_addi(Rv32_register_id rd, Rv32_register_id rs1, ui
 	return encode_op_imm(Rv32_op_imm_funct::addi, rd, rs1, imm);
 }
 
+uint32_t Rv32_encoder::encode_and(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+{
+	return encode_op(Rv32_op_funct3::and_, Rv32_op_funct7::and_, rd, rs1, rs2);
+}
+
 uint32_t Rv32_encoder::encode_andi(Rv32_register_id rd, Rv32_register_id rs1, uint16_t imm)
 {
 	return encode_op_imm(Rv32_op_imm_funct::andi, rd, rs1, imm);
@@ -363,9 +369,19 @@ uint32_t Rv32_encoder::encode_lui(Rv32_register_id rd, uint32_t imm)
 	return encode_utype(Rv32i_opcode::lui, rd, imm);
 }
 
+uint32_t Rv32_encoder::encode_or(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+{
+	return encode_op(Rv32_op_funct3::or_, Rv32_op_funct7::or_, rd, rs1, rs2);
+}
+
 uint32_t Rv32_encoder::encode_ori(Rv32_register_id rd, Rv32_register_id rs1, uint16_t imm)
 {
 	return encode_op_imm(Rv32_op_imm_funct::ori, rd, rs1, imm);
+}
+
+uint32_t Rv32_encoder::encode_sll(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+{
+	return encode_op(Rv32_op_funct3::sll, Rv32_op_funct7::sll, rd, rs1, rs2);
 }
 
 uint32_t Rv32_encoder::encode_slli(Rv32_register_id rd, Rv32_register_id rs1, uint8_t shift_amount)
@@ -388,6 +404,11 @@ uint32_t Rv32_encoder::encode_sltiu(Rv32_register_id rd, Rv32_register_id rs1, u
 	return encode_op_imm(Rv32_op_imm_funct::sltiu, rd, rs1, imm);
 }
 
+uint32_t Rv32_encoder::encode_sra(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+{
+	return encode_op(Rv32_op_funct3::sra, Rv32_op_funct7::sra, rd, rs1, rs2);
+}
+
 uint32_t Rv32_encoder::encode_sltu(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::sltu, Rv32_op_funct7::sltu, rd, rs1, rs2);
@@ -396,6 +417,11 @@ uint32_t Rv32_encoder::encode_sltu(Rv32_register_id rd, Rv32_register_id rs1, Rv
 uint32_t Rv32_encoder::encode_srai(Rv32_register_id rd, Rv32_register_id rs1, uint8_t shift_amount)
 {
 	return encode_op_imm(Rv32_op_imm_funct::srxi, rd, rs1, (1 << 10) | (0b11111 & shift_amount));
+}
+
+uint32_t Rv32_encoder::encode_srl(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+{
+	return encode_op(Rv32_op_funct3::srl, Rv32_op_funct7::srl, rd, rs1, rs2);
 }
 
 uint32_t Rv32_encoder::encode_srli(Rv32_register_id rd, Rv32_register_id rs1, uint8_t shift_amount)
@@ -411,6 +437,11 @@ uint32_t Rv32_encoder::encode_sub(Rv32_register_id rd, Rv32_register_id rs1, Rv3
 uint32_t Rv32_encoder::encode_xori(Rv32_register_id rd, Rv32_register_id rs1, uint16_t imm)
 {
 	return encode_op_imm(Rv32_op_imm_funct::xori, rd, rs1, imm);
+}
+
+uint32_t Rv32_encoder::encode_xor(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+{
+	return encode_op(Rv32_op_funct3::xor_, Rv32_op_funct7::xor_, rd, rs1, rs2);
 }
 
 Rv32_register_id Rv32i_decoder::get_rv32_register_id(uint8_t encoded_register)
