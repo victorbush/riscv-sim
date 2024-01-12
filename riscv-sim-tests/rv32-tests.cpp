@@ -1,3 +1,4 @@
+#include <array>
 #include <gtest/gtest.h>
 #include <map>
 
@@ -182,5 +183,43 @@ TEST(get_rv32i_opcode, ValidAndInvalidValues) {
 	for (const auto test : test_cases) {
 		auto result = Rv32i_decoder::get_rv32i_opcode(test.first);
 		EXPECT_EQ(result, test.second);
+	}
+}
+
+TEST(Rv_btype_imm, get_offset) {
+
+	// List of test bit pairs.
+	// (instruction bit index, expected offset bit index)
+	//
+	// The instruction bit index is set.
+	// Then the B-type immediate is created.
+	// Then the offset is verified to see if the expected offset bit is set.
+	array<pair<uint8_t, uint8_t>, 12> test_bits = {
+		make_pair(7, 11),
+		make_pair(8, 1),
+		make_pair(9, 2),
+		make_pair(10, 3),
+		make_pair(11, 4),
+		make_pair(25, 5),
+		make_pair(26, 6),
+		make_pair(27, 7),
+		make_pair(28, 8),
+		make_pair(29, 9),
+		make_pair(30, 10),
+		make_pair(31, 12),
+	};
+
+	for (const auto& pair : test_bits) {
+		uint32_t instruction = 1 << pair.first;
+		uint8_t encoded_7to11 = (instruction >> 7) & 0b11111;
+		uint8_t encoded_25to31 = (instruction >> 25) & 0b1111111;
+
+		auto imm = Rv_btype_imm(encoded_7to11, encoded_25to31);
+		
+		// If the last bit is set, expect sign extend
+		if (pair.second == 12)
+			EXPECT_EQ(0b1111'1111'1111'1111'1111'0000'0000'0000, imm.get_offset());
+		else
+			EXPECT_EQ(1 << pair.second, imm.get_offset());
 	}
 }

@@ -13,8 +13,9 @@ struct Rv_btype_imm
 	int32_t get_offset() const;
 
 private:
-	uint8_t encoded_7to11;  // Bits 7 through 11 of the instruction when encoded
-	uint8_t encoded_25to31; // Bits 25 through 31 of the instruction when encoded
+	uint8_t _encoded_7to11;  // Bits 7 through 11 of the instruction when encoded
+	uint8_t _encoded_25to31; // Bits 25 through 31 of the instruction when encoded
+	uint32_t _offset;
 };
 
 /** 12-bit immediate value used by I-type instructions. The value is sign extended to 32 bits. The 12th bit determines the sign. */

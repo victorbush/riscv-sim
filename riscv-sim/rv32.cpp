@@ -503,18 +503,28 @@ uint32_t Rv_utype_imm::get_decoded() const
 }
 
 Rv_btype_imm::Rv_btype_imm(uint8_t encoded_7to11, uint8_t encoded_25to31)
-	: encoded_7to11(encoded_7to11), encoded_25to31(encoded_25to31)
-{
-}
-
-int32_t Rv_btype_imm::get_offset() const
+	: _encoded_7to11(encoded_7to11), _encoded_25to31(encoded_25to31)
 {
 	/*
 	Instruction bit:  31 30 29 28 27 26 25    11 10 9 8  7
 	Offset bit:       12 10  9  8  7  6  5     4  3 2 1 11
 	*/
 
-	throw exception("Not implemented.");
+	const auto bit11 = (_encoded_7to11 & 1) << 11;
+	const auto bit1to4 = _encoded_7to11 & 0b11110;
+	const auto bit5to10 = (_encoded_25to31 & 0b111111) << 5;
+	const auto bit12 = (_encoded_25to31 & 0b1000000) << 6;
+
+	_offset = bit1to4 | bit5to10 | bit11 | bit12;
+
+	// Sign extend
+	if (bit12)
+		_offset |= 0b1111'1111'1111'1111'1111'0000'0000'0000;
+}
+
+int32_t Rv_btype_imm::get_offset() const
+{
+	return _offset;
 }
 
 }
