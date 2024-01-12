@@ -9,9 +9,12 @@ struct Rv_btype_imm
 {
 	Rv_btype_imm(uint8_t encoded_7to11, uint8_t encoded_25to31);
 
+	/** Gets the branch offset. The 12-bit immediate is sign extended. */
+	int32_t get_offset() const;
+
 private:
-	uint8_t encoded_7to11;  // Bits 7 through 11 when encoded
-	uint8_t encoded_25to31; // Bits 25 through 31 when encoded
+	uint8_t encoded_7to11;  // Bits 7 through 11 of the instruction when encoded
+	uint8_t encoded_25to31; // Bits 25 through 31 of the instruction when encoded
 };
 
 /** 12-bit immediate value used by I-type instructions. The value is sign extended to 32 bits. The 12th bit determines the sign. */

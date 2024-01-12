@@ -502,4 +502,19 @@ uint32_t Rv_utype_imm::get_decoded() const
 	return _decoded;
 }
 
+Rv_btype_imm::Rv_btype_imm(uint8_t encoded_7to11, uint8_t encoded_25to31)
+	: encoded_7to11(encoded_7to11), encoded_25to31(encoded_25to31)
+{
+}
+
+int32_t Rv_btype_imm::get_offset() const
+{
+	/*
+	Instruction bit:  31 30 29 28 27 26 25    11 10 9 8  7
+	Offset bit:       12 10  9  8  7  6  5     4  3 2 1 11
+	*/
+
+	throw exception("Not implemented.");
+}
+
 }
