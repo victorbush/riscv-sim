@@ -357,6 +357,8 @@ public:
 	static uint32_t encode_beq(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
 	static uint32_t encode_bge(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
 	static uint32_t encode_bgeu(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
+	static uint32_t encode_blt(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
+	static uint32_t encode_bltu(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
 	static uint32_t encode_bne(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
 	static uint32_t encode_lui(Rv32_register_id rd, uint32_t imm);
 	static uint32_t encode_or(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);

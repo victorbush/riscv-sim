@@ -153,6 +153,24 @@ TEST(execute_next, BGEU) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x510);
 }
 
+TEST(execute_next, BLT) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_blt(Rv32_register_id::x2, Rv32_register_id::x3, 0x10);
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x2, 2);
+	hart.set_register(Rv32_register_id::x3, 3);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 2);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 3);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x510);
+}
+
 TEST(execute_next, BNE) {
 
 	auto memory = Simple_memory_subsystem();
@@ -742,7 +760,7 @@ TEST(execute_bge, BranchTakenBecauseEqualTo) {
 
 TEST(execute_bge, BranchNotTaken) {
 
-	// rs1 < rs1, so PC gets advanced to next instruction
+	// rs1 < rs2, so PC gets advanced to next instruction
 
 	auto memory = Simple_memory_subsystem();
 	auto hart = Rv32_hart(memory);
@@ -836,7 +854,7 @@ TEST(execute_bgeu, BranchTakenBecauseEqualTo) {
 
 TEST(execute_bgeu, BranchNotTaken) {
 
-	// rs1 < rs1, so PC gets advanced to next instruction
+	// rs1 < rs2, so PC gets advanced to next instruction
 
 	auto memory = Simple_memory_subsystem();
 	auto hart = Rv32_hart(memory);
@@ -882,6 +900,99 @@ TEST(execute_bgeu, AddressMisalignedButBranchNotTaken) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 404);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 4);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 5);
+}
+
+/* --------------------------------------------------------
+BLT
+-------------------------------------------------------- */
+
+TEST(execute_blt, BranchTaken) {
+
+	// rs1 < rs2, branch taken
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 400);
+	hart.set_register(Rv32_register_id::x2, 4);
+	hart.set_register(Rv32_register_id::x3, 5);
+	hart.execute_blt(Rv32_register_id::x2, Rv32_register_id::x3, Rv_btype_imm::from_offset(64));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 464);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 5);
+
+	// Ensure signed comparison
+
+	hart.set_register(Rv32_register_id::pc, 400);
+	hart.set_register(Rv32_register_id::x2, -4);
+	hart.set_register(Rv32_register_id::x3, 5);
+	hart.execute_blt(Rv32_register_id::x2, Rv32_register_id::x3, Rv_btype_imm::from_offset(64));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 464);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), -4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 5);
+}
+
+TEST(execute_blt, BranchNotTakenBecauseEqualTo) {
+
+	// rs1 == rs2, so PC gets advanced to next instruction
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 400);
+	hart.set_register(Rv32_register_id::x2, 4);
+	hart.set_register(Rv32_register_id::x3, 4);
+	hart.execute_blt(Rv32_register_id::x2, Rv32_register_id::x3, Rv_btype_imm::from_offset(64));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 404);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 4);
+}
+
+TEST(execute_blt, BranchNotTakenBecauseGreaterThan) {
+
+	// rs1 > rs2, so PC gets advanced to next instruction
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 464);
+	hart.set_register(Rv32_register_id::x2, 5);
+	hart.set_register(Rv32_register_id::x3, 4);
+	hart.execute_blt(Rv32_register_id::x2, Rv32_register_id::x3, Rv_btype_imm::from_offset(-64));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 468);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 5);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 4);
+
+	// Ensure signed comparison
+
+	hart.set_register(Rv32_register_id::pc, 464);
+	hart.set_register(Rv32_register_id::x2, 4);
+	hart.set_register(Rv32_register_id::x3, -5);
+	hart.execute_blt(Rv32_register_id::x2, Rv32_register_id::x3, Rv_btype_imm::from_offset(-64));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 468);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), -5);
+}
+
+TEST(execute_blt, AddressMisalignedAndBranchTaken) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 400);
+	hart.set_register(Rv32_register_id::x2, 3);
+	hart.set_register(Rv32_register_id::x3, 4);
+
+	EXPECT_THROW_EX(hart.execute_blt(Rv32_register_id::x2, Rv32_register_id::x3, Rv_btype_imm::from_offset(2)), "instruction-address-misaligned");
+}
+
+TEST(execute_blt, AddressMisalignedButBranchNotTaken) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 400);
+	hart.set_register(Rv32_register_id::x2, 4);
+	hart.set_register(Rv32_register_id::x3, 3);
+	hart.execute_blt(Rv32_register_id::x2, Rv32_register_id::x3, Rv_btype_imm::from_offset(2));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 404);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 3);
 }
 
 /* --------------------------------------------------------
