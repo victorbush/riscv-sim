@@ -51,6 +51,11 @@ static uint32_t create_branch_signature(Rv32_branch_funct3 funct3)
 	return create_btype_signature(Rv32i_opcode::branch, to_underlying(funct3));
 }
 
+static uint32_t create_load_signature(Rv32_load_funct3 funct3)
+{
+	return create_itype_signature(Rv32i_opcode::load, to_underlying(funct3));
+}
+
 static uint32_t create_op_signature(Rv32_op_funct3 funct3, Rv32_op_funct7 funct7)
 {
 	return create_rtype_signature(Rv32i_opcode::op, to_underlying(funct3), to_underlying(funct7));
@@ -127,6 +132,12 @@ const map<uint32_t, Signature_match> instruction_signature_map2 = {
 	{ create_op_imm_signature(Rv32_op_imm_funct::sltiu), Rv32i_instruction_type::sltiu },
 	{ create_op_imm_signature(Rv32_op_imm_funct::srxi), resolve_op_imm_shift_right },
 	{ create_op_imm_signature(Rv32_op_imm_funct::xori), Rv32i_instruction_type::xori },
+
+	{ create_load_signature(Rv32_load_funct3::lb), Rv32i_instruction_type::lb },
+	{ create_load_signature(Rv32_load_funct3::lbu), Rv32i_instruction_type::lbu },
+	{ create_load_signature(Rv32_load_funct3::lh), Rv32i_instruction_type::lh },
+	{ create_load_signature(Rv32_load_funct3::lhu), Rv32i_instruction_type::lhu },
+	{ create_load_signature(Rv32_load_funct3::lw), Rv32i_instruction_type::lw },
 
 	{ create_op_signature(Rv32_op_funct3::add, Rv32_op_funct7::add), Rv32i_instruction_type::add },
 	{ create_op_signature(Rv32_op_funct3::and_, Rv32_op_funct7::and_), Rv32i_instruction_type::and_ },
@@ -230,7 +241,7 @@ const auto rv32_opcode_mask_map = map<uint8_t, uint32_t>() = {
 	{ to_underlying(Rv32i_opcode::branch), rv32i_btype_mask },
 	//{ to_underlying(Rv32i_opcode::jal), rv32i_jtype_mask },
 	//{ to_underlying(Rv32i_opcode::jalr), rv32i_itype_mask },
-	//{ to_underlying(Rv32i_opcode::load), rv32i_itype_mask },
+	{ to_underlying(Rv32i_opcode::load), rv32i_itype_mask },
 	{ to_underlying(Rv32i_opcode::lui), rv32i_utype_mask },
 	//{ to_underlying(Rv32i_opcode::misc_mem), rv32i_itype_mask },
 	{ to_underlying(Rv32i_opcode::op), rv32i_rtype_mask },

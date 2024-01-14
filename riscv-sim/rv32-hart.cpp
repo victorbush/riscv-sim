@@ -67,7 +67,7 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 	{ Rv32i_instruction_type::bltu, &Rv32_hart::execute_bltu },
 	{ Rv32i_instruction_type::bne, &Rv32_hart::execute_bne },
 
-	// I-type
+	// I-type - OP-IMM
 
 	{ Rv32i_instruction_type::addi, &Rv32_hart::execute_addi },
 	{ Rv32i_instruction_type::andi, &Rv32_hart::execute_andi },
@@ -78,6 +78,14 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 	{ Rv32i_instruction_type::srli, &Rv32_hart::execute_srli },
 	{ Rv32i_instruction_type::srai, &Rv32_hart::execute_srai },
 	{ Rv32i_instruction_type::xori, &Rv32_hart::execute_xori },
+
+	// I-type - LOAD
+
+	{ Rv32i_instruction_type::lb, &Rv32_hart::execute_lb },
+	{ Rv32i_instruction_type::lbu, &Rv32_hart::execute_lbu },
+	{ Rv32i_instruction_type::lh, &Rv32_hart::execute_lh },
+	{ Rv32i_instruction_type::lhu, &Rv32_hart::execute_lhu },
+	{ Rv32i_instruction_type::lw, &Rv32_hart::execute_lw },
 
 	// J-type
 
@@ -327,6 +335,31 @@ void Rv32_hart::execute_bne(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype
 	}
 
 	set_register(Rv32_register_id::pc, pc);
+}
+
+void Rv32_hart::execute_lb(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+{
+	throw exception("Not implemented.");
+}
+
+void Rv32_hart::execute_lbu(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+{
+	throw exception("Not implemented.");
+}
+
+void Rv32_hart::execute_lh(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+{
+	throw exception("Not implemented.");
+}
+
+void Rv32_hart::execute_lhu(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+{
+	throw exception("Not implemented.");
+}
+
+void Rv32_hart::execute_lw(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+{
+	throw exception("Not implemented.");
 }
 
 void Rv32_hart::execute_lui(Rv32_register_id rd, Rv_utype_imm imm)

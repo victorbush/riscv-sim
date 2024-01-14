@@ -154,6 +154,15 @@ enum class Rv32_branch_funct3 : uint8_t
 	bgeu = 0b111,
 };
 
+enum class Rv32_load_funct3 : uint8_t
+{
+	lb = 0b000,
+	lh = 0b001,
+	lw = 0b010,
+	lbu = 0b100,
+	lhu = 0b101,
+};
+
 enum class Rv32_op_funct3 : uint8_t
 {
 	add = 0b000,
@@ -208,8 +217,6 @@ enum class Rv32i_instruction_type
 {
 	invalid,
 
-	load,
-	store,
 	miscmem,
 	system,
 
@@ -226,6 +233,20 @@ enum class Rv32i_instruction_type
 	bltu,  // Branch if rs1 < rs2 (unsigned)
 	bge,   // Branch if rs1 >= rs2 (signed)
 	bgeu,  // Branch if rs1 >= rs2 (unsigned)
+
+	// Load
+
+	lb,    // Load byte (8-bit)
+	lh,    // Load half (16-bit)
+	lw,    // Load word (32-bit)
+	lbu,   // Load byte unsigned
+	lhu,   // Load half unsigned
+
+	// Save
+
+	sb,    // Store byte
+	sh,    // Store half
+	sw,    // Store word
 
 	// Op immediate
 
