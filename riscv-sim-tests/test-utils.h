@@ -5,7 +5,7 @@
 	try \
 	{ \
 		(statement); \
-		FAIL("Expected an exception to be thrown."); \
+		FAIL(); \
 	} \
 	catch (std::exception& ex) \
 	{ \
