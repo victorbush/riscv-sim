@@ -354,6 +354,8 @@ public:
 	static uint32_t encode_and(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	static uint32_t encode_andi(Rv32_register_id rd, Rv32_register_id rs1, uint16_t imm);
 	static uint32_t encode_auipc(Rv32_register_id rd, uint32_t imm);
+	static uint32_t encode_beq(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
+	static uint32_t encode_bne(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
 	static uint32_t encode_lui(Rv32_register_id rd, uint32_t imm);
 	static uint32_t encode_or(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	static uint32_t encode_ori(Rv32_register_id rd, Rv32_register_id rs1, uint16_t imm);

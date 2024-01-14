@@ -46,6 +46,11 @@ static uint32_t create_jtype_signature(Rv32i_opcode opcode)
 	return create_utype_signature(opcode);
 }
 
+static uint32_t create_branch_signature(Rv32_branch_funct3 funct3)
+{
+	return create_btype_signature(Rv32i_opcode::branch, to_underlying(funct3));
+}
+
 static uint32_t create_op_signature(Rv32_op_funct3 funct3, Rv32_op_funct7 funct7)
 {
 	return create_rtype_signature(Rv32i_opcode::op, to_underlying(funct3), to_underlying(funct7));
@@ -106,6 +111,9 @@ const map<uint32_t, Signature_match> instruction_signature_map2 = {
 	
 	{ create_utype_signature(Rv32i_opcode::lui), Rv32i_instruction_type::lui },
 	{ create_utype_signature(Rv32i_opcode::auipc), Rv32i_instruction_type::auipc },
+
+	{ create_branch_signature(Rv32_branch_funct3::beq), Rv32i_instruction_type::beq },
+	{ create_branch_signature(Rv32_branch_funct3::bne), Rv32i_instruction_type::bne },
 
 	{ create_op_imm_signature(Rv32_op_imm_funct::addi), Rv32i_instruction_type::addi },
 	{ create_op_imm_signature(Rv32_op_imm_funct::andi), Rv32i_instruction_type::andi },
@@ -215,7 +223,7 @@ signature = instruction & mask
 */
 const auto rv32_opcode_mask_map = map<uint8_t, uint32_t>() = {
 	{ to_underlying(Rv32i_opcode::auipc), rv32i_utype_mask },
-	//{ to_underlying(Rv32i_opcode::branch), rv32i_btype_mask },
+	{ to_underlying(Rv32i_opcode::branch), rv32i_btype_mask },
 	//{ to_underlying(Rv32i_opcode::jal), rv32i_jtype_mask },
 	//{ to_underlying(Rv32i_opcode::jalr), rv32i_itype_mask },
 	//{ to_underlying(Rv32i_opcode::load), rv32i_itype_mask },
@@ -396,6 +404,16 @@ uint32_t Rv32_encoder::encode_andi(Rv32_register_id rd, Rv32_register_id rs1, ui
 uint32_t Rv32_encoder::encode_auipc(Rv32_register_id rd, uint32_t imm)
 {
 	return encode_utype(Rv32i_opcode::auipc, rd, imm);
+}
+
+uint32_t Rv32_encoder::encode_beq(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+{
+	return encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::beq, rs1, rs2, offset);
+}
+
+uint32_t Rv32_encoder::encode_bne(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+{
+	return encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bne, rs1, rs2, offset);
 }
 
 uint32_t Rv32_encoder::encode_lui(Rv32_register_id rd, uint32_t imm)

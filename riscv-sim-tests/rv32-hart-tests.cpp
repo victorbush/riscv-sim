@@ -99,6 +99,42 @@ TEST(execute_next, AUIPC) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
 }
 
+TEST(execute_next, BEQ) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_beq(Rv32_register_id::x2, Rv32_register_id::x3, 0x10);
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x2, 1);
+	hart.set_register(Rv32_register_id::x3, 1);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x510);
+}
+
+TEST(execute_next, BNE) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_bne(Rv32_register_id::x2, Rv32_register_id::x3, 0x10);
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x2, 1);
+	hart.set_register(Rv32_register_id::x3, 2);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 1);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 2);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x510);
+}
+
 TEST(execute_next, LUI) {
 
 	auto memory = Simple_memory_subsystem();
