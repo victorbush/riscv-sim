@@ -3,6 +3,7 @@
 #include <map>
 
 #include "rv32.h"
+#include "test-utils.h"
 
 using namespace riscv_sim;
 using namespace std;
@@ -47,6 +48,17 @@ TEST(decode_rv32i_instruction_type, SLTI) {
 	auto instruction = Rv32_encoder::encode_slti(Rv32_register_id::x1, Rv32_register_id::x2, 123);
 	auto type = Rv32i_decoder::decode_rv32i_instruction_type(instruction);
 	EXPECT_EQ(type, Rv32i_instruction_type::slti);
+}
+
+TEST(encode_btype, ValidInstruction) {
+
+	auto instruction = Rv32_encoder::encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bge, Rv32_register_id::x2, Rv32_register_id::x15, -320);
+	auto result = Rv32i_decoder::decode_btype(instruction);
+	EXPECT_EQ(result.opcode, Rv32i_opcode::branch);
+	EXPECT_EQ(result.funct3, to_underlying(Rv32_branch_funct3::bge));
+	EXPECT_EQ(result.rs1, Rv32_register_id::x2);
+	EXPECT_EQ(result.rs2, Rv32_register_id::x15);
+	EXPECT_EQ(result.imm.get_offset(), -320);
 }
 
 TEST(encode_addi, ValidInstruction) {
@@ -211,10 +223,7 @@ TEST(Rv_btype_imm, get_offset) {
 
 	for (const auto& pair : test_bits) {
 		uint32_t instruction = 1 << pair.first;
-		uint8_t encoded_7to11 = (instruction >> 7) & 0b11111;
-		uint8_t encoded_25to31 = (instruction >> 25) & 0b1111111;
-
-		auto imm = Rv_btype_imm(encoded_7to11, encoded_25to31);
+		auto imm = Rv_btype_imm::from_instruction(instruction);
 		
 		// If the last bit is set, expect sign extend
 		if (pair.second == 12)
@@ -222,4 +231,67 @@ TEST(Rv_btype_imm, get_offset) {
 		else
 			EXPECT_EQ(1 << pair.second, imm.get_offset());
 	}
+}
+
+TEST(Rv_btype_imm, get_encoded) {
+
+	// List of test bit pairs.
+	// (expected instruction bit index, offset bit index)
+	//
+	// The offset bit index is set.
+	// Then the B-type immediate is created.
+	// Then the encoded instruction is verified to see if the expected bit is set.
+	array<pair<uint8_t, uint8_t>, 12> test_bits = {
+		make_pair(7, 11),
+		make_pair(8, 1),
+		make_pair(9, 2),
+		make_pair(10, 3),
+		make_pair(11, 4),
+		make_pair(25, 5),
+		make_pair(26, 6),
+		make_pair(27, 7),
+		make_pair(28, 8),
+		make_pair(29, 9),
+		make_pair(30, 10),
+		make_pair(31, 12),
+	};
+
+	for (const auto& pair : test_bits) {
+		int32_t offset = 1 << pair.second;
+
+		// If the last bit is set, expect sign extend
+		if (pair.second == 12)
+			offset |= 0b1111'1111'1111'1111'1111'0000'0000'0000;
+
+		auto imm = Rv_btype_imm::from_offset(offset);
+		EXPECT_EQ(1 << pair.first, imm.get_encoded());
+	}
+}
+
+TEST(Rv_btype_imm, NotAMultipleOf2) {
+
+	// Offsets are only multiples of 2
+	EXPECT_THROW_EX(Rv_btype_imm::from_offset(-3), "Conditional branch offsets must be multiples of 2.");
+}
+
+TEST(Rv_btype_imm, AtMinValue) {
+
+	auto imm = Rv_btype_imm::from_offset(-4096);
+	EXPECT_EQ(imm.get_offset(), -4096);
+}
+
+TEST(Rv_btype_imm, BelowMinValue) {
+
+	EXPECT_THROW_EX(Rv_btype_imm::from_offset(-4098), "Conditional branch offsets must fall in the range [-4096, 4094].");
+}
+
+TEST(Rv_btype_imm, AtMaxValue) {
+
+	auto imm = Rv_btype_imm::from_offset(4094);
+	EXPECT_EQ(imm.get_offset(), 4094);
+}
+
+TEST(Rv_btype_imm, AboveMaxValue) {
+
+	EXPECT_THROW_EX(Rv_btype_imm::from_offset(4096), "Conditional branch offsets must fall in the range [-4096, 4094].");
 }

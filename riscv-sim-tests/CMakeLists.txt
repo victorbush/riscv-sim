@@ -18,6 +18,7 @@ add_executable(riscv-sim-tests
 	"../riscv-sim/rv32-hart.cpp"
 	"../riscv-sim/simple-system.cpp"
 	"simple-system-tests.cpp"
+	"test-utils.h"
 )
 
 target_include_directories(riscv-sim-tests PRIVATE "../riscv-sim")

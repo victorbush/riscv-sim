@@ -7,15 +7,23 @@ namespace riscv_sim {
 /** 12-bit immediate value used by B-type instructions. */
 struct Rv_btype_imm
 {
-	Rv_btype_imm(uint8_t encoded_7to11, uint8_t encoded_25to31);
+	/** Extracts a B-type immediate from a B-type instruction. */
+	static Rv_btype_imm from_instruction(uint32_t instruction);
+
+	/** Creates a B-type immediate from a decoded branch offset value. The upper 20 bits of the input are discarded and the lower 12 bits used. */
+	static Rv_btype_imm from_offset(int32_t offset);
+
+	/** Encodes immediate into an empty 32-bit instruction. */
+	uint32_t get_encoded() const;
 
 	/** Gets the branch offset. The 12-bit immediate is sign extended. */
 	int32_t get_offset() const;
 
 private:
-	uint8_t _encoded_7to11;  // Bits 7 through 11 of the instruction when encoded
-	uint8_t _encoded_25to31; // Bits 25 through 31 of the instruction when encoded
-	uint32_t _offset;
+	Rv_btype_imm(int32_t offset, uint32_t encoded);
+
+	uint32_t _encoded;  // Immediate value encoded into a 32-bit instruction
+	int32_t _offset;    // Decoded and sign-extended branch offset
 };
 
 /** 12-bit immediate value used by I-type instructions. The value is sign extended to 32 bits. The 12th bit determines the sign. */
@@ -136,6 +144,16 @@ enum class Rv32i_opcode : uint8_t
 	system = 0b1110011, // Environment call, breakpoint
 };
 
+enum class Rv32_branch_funct3 : uint8_t
+{
+	beq = 0b000,
+	bne = 0b001,
+	blt = 0b100,
+	bge = 0b101,
+	bltu = 0b110,
+	bgeu = 0b111,
+};
+
 enum class Rv32_op_funct3 : uint8_t
 {
 	add = 0b000,
@@ -238,6 +256,15 @@ enum class Rv32i_instruction_type
 	and_,
 };
 
+struct Rv_btype_instruction
+{
+	Rv32i_opcode opcode;
+	uint8_t funct3;
+	Rv32_register_id rs1;
+	Rv32_register_id rs2;
+	Rv_btype_imm imm;
+};
+
 struct Rv_rtype_instruction
 {
 	Rv32i_opcode opcode;
@@ -307,6 +334,7 @@ class Rv32i_decoder
 public:
 	static Rv32i_instruction_type decode_rv32i_instruction_type(uint32_t instruction);
 	static Rv32i_itype_instruction decode_rv32i_itype(uint32_t instruction);
+	static Rv_btype_instruction decode_btype(uint32_t instruction);
 	static Rv_rtype_instruction decode_rtype(uint32_t instruction);
 	static Rv_utype_instruction decode_utype(uint32_t instruction);
 	static Rv32_register_id get_rv32_register_id(uint8_t encoded_register);
@@ -316,6 +344,7 @@ public:
 class Rv32_encoder
 {
 public:
+	static uint32_t encode_btype(Rv32i_opcode opcode, Rv32_branch_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rs2, int16_t imm);
 	static uint32_t encode_op(Rv32_op_funct3 funct3, Rv32_op_funct7 funct7, Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	static uint32_t encode_op_imm(Rv32_op_imm_funct funct, Rv32_register_id rd, Rv32_register_id rs1, uint16_t imm);
 	static uint32_t encode_utype(Rv32i_opcode opcode, Rv32_register_id rd, uint32_t imm);

@@ -273,6 +273,28 @@ Rv32i_itype_instruction Rv32i_decoder::decode_rv32i_itype(uint32_t instruction)
 	return Rv32i_itype_instruction(opcode, funct3, rd, rs1, imm);
 }
 
+Rv_btype_instruction Rv32i_decoder::decode_btype(uint32_t instruction)
+{
+	// 31        25 | 24     20 | 19     15 | 14    12 | 11     7 | 6      0
+	// imm[12|10:5]      rs2         rs1       funct3   imm[4:1|11]  opcode
+
+	const auto opcode = get_rv32i_opcode(instruction);
+	if (opcode == Rv32i_opcode::invalid)
+		throw exception("Invalid instruction.");
+
+	const uint8_t funct3 = 0b111 & (instruction >> 12);
+
+	const auto imm = Rv_btype_imm::from_instruction(instruction);
+
+	const uint8_t rs2_raw = 0b1'1111 & (instruction >> 20);
+	const auto rs2 = get_rv32_register_id(rs2_raw);
+
+	const uint8_t rs1_raw = 0b1'1111 & (instruction >> 15);
+	const auto rs1 = get_rv32_register_id(rs1_raw);
+
+	return Rv_btype_instruction(opcode, funct3, rs1, rs2, imm);
+}
+
 Rv_rtype_instruction Rv32i_decoder::decode_rtype(uint32_t instruction)
 {
 	// 31        25 | 24     20 | 19     15 | 14    12 | 11     7 | 6      0
@@ -296,6 +318,7 @@ Rv_rtype_instruction Rv32i_decoder::decode_rtype(uint32_t instruction)
 	const auto rd = get_rv32_register_id(rd_raw);
 
 	auto i = Rv_rtype_instruction();
+	i.opcode = opcode;
 	i.funct3 = funct3;
 	i.funct7 = funct7;
 	i.rd = rd;
@@ -320,6 +343,12 @@ Rv_utype_instruction Rv32i_decoder::decode_utype(uint32_t instruction)
 	auto imm = Rv_utype_imm(instruction >> 12);
 
 	return Rv_utype_instruction(opcode, rd, imm);
+}
+
+uint32_t Rv32_encoder::encode_btype(Rv32i_opcode opcode, Rv32_branch_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rs2, int16_t imm)
+{
+	auto immediate = Rv_btype_imm::from_offset(imm);
+	return immediate.get_encoded() | to_underlying(opcode) | to_underlying(funct3) << 12 | to_underlying(rs1) << 15 | to_underlying(rs2) << 20;
 }
 
 uint32_t Rv32_encoder::encode_utype(Rv32i_opcode opcode, Rv32_register_id rd, uint32_t imm)
@@ -502,24 +531,61 @@ uint32_t Rv_utype_imm::get_decoded() const
 	return _decoded;
 }
 
-Rv_btype_imm::Rv_btype_imm(uint8_t encoded_7to11, uint8_t encoded_25to31)
-	: _encoded_7to11(encoded_7to11), _encoded_25to31(encoded_25to31)
+Rv_btype_imm Rv_btype_imm::from_instruction(uint32_t instruction)
 {
 	/*
 	Instruction bit:  31 30 29 28 27 26 25    11 10 9 8  7
 	Offset bit:       12 10  9  8  7  6  5     4  3 2 1 11
+
+	Note: b-type immediates use 12 bits of the instruction, but use
+	13 total bits once decoded. Bit 0 is always 0.
 	*/
 
-	const auto bit11 = (_encoded_7to11 & 1) << 11;
-	const auto bit1to4 = _encoded_7to11 & 0b11110;
-	const auto bit5to10 = (_encoded_25to31 & 0b111111) << 5;
-	const auto bit12 = (_encoded_25to31 & 0b1000000) << 6;
+	const auto bit1to4 = ((instruction >> 8) & 0b1111) << 1;
+	const auto bit5to10 = ((instruction >> 25) & 0b111111) << 5;
+	const auto bit11 = ((instruction >> 7) & 1) << 11;
+	const auto bit12 = ((instruction >> 31) & 1) << 12;
 
-	_offset = bit1to4 | bit5to10 | bit11 | bit12;
+	int32_t offset = bit1to4 | bit5to10 | bit11 | bit12;
 
 	// Sign extend
 	if (bit12)
-		_offset |= 0b1111'1111'1111'1111'1111'0000'0000'0000;
+		offset |= 0b1111'1111'1111'1111'1111'0000'0000'0000;
+
+	// Store the encoded immediate value (clear unrelated bits of the instruction)
+	uint32_t encoded = instruction & 0b1111'1110'0000'0000'0000'1111'1000'0000;
+
+	return Rv_btype_imm(offset, encoded);
+}
+
+Rv_btype_imm Rv_btype_imm::from_offset(int32_t offset)
+{
+	// Offsets must be multiples of 2
+	if (offset & 1)
+		throw exception("Conditional branch offsets must be multiples of 2.");
+
+	// Offsets must fall in the range [-4096, 4094]
+	if (offset < -4096 || offset > 4094)
+		throw exception("Conditional branch offsets must fall in the range [-4096, 4094].");
+
+	const auto inst_bit_7 = ((offset >> 11) & 1) << 7;
+	const auto inst_bit_8to11 = ((offset >> 1) & 0b1111) << 8;
+	const auto inst_bit_25to30 = ((offset >> 5) & 0b111111) << 25;
+	const auto inst_bit_31 = ((offset >> 12) & 1) << 31;
+
+	const uint32_t encoded = inst_bit_7 | inst_bit_8to11 | inst_bit_25to30 | inst_bit_31;
+
+	return Rv_btype_imm(offset, encoded);
+}
+
+Rv_btype_imm::Rv_btype_imm(int32_t offset, uint32_t encoded)
+	: _offset(offset), _encoded(encoded)
+{
+}
+
+uint32_t Rv_btype_imm::get_encoded() const
+{
+	return _encoded;
 }
 
 int32_t Rv_btype_imm::get_offset() const
