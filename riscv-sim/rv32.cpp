@@ -451,6 +451,11 @@ uint32_t Rv32_encoder::encode_bne(Rv32_register_id rs1, Rv32_register_id rs2, in
 	return encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bne, rs1, rs2, offset);
 }
 
+uint32_t Rv32_encoder::encode_lbu(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset)
+{
+	return 
+}
+
 uint32_t Rv32_encoder::encode_lui(Rv32_register_id rd, uint32_t imm)
 {
 	return encode_utype(Rv32i_opcode::lui, rd, imm);

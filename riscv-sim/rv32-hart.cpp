@@ -339,7 +339,11 @@ void Rv32_hart::execute_bne(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype
 
 void Rv32_hart::execute_lb(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
 {
-	throw exception("Not implemented.");
+	uint32_t rs1_val = get_register(rs1);
+	int32_t offset = imm.to_i32();
+	uint32_t address = rs1_val + offset;
+	uint8_t mem = memory.read_byte(address);
+	set_register(rd, mem);
 }
 
 void Rv32_hart::execute_lbu(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
