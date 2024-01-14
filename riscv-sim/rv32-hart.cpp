@@ -62,7 +62,7 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 
 	{ Rv32i_instruction_type::beq, &Rv32_hart::execute_beq },
 	{ Rv32i_instruction_type::bge, &Rv32_hart::execute_bge },
-	//{ Rv32i_instruction_type::bgeu, &Rv32_hart::execute_bgeu },
+	{ Rv32i_instruction_type::bgeu, &Rv32_hart::execute_bgeu },
 	//{ Rv32i_instruction_type::blt, &Rv32_hart::execute_blt },
 	//{ Rv32i_instruction_type::bltu, &Rv32_hart::execute_bltu },
 	{ Rv32i_instruction_type::bne, &Rv32_hart::execute_bne },
@@ -233,6 +233,27 @@ void Rv32_hart::execute_bge(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype
 	// Signed comparison
 	int32_t rs1_val = get_register(rs1);
 	int32_t rs2_val = get_register(rs2);
+
+	if (rs1_val >= rs2_val)
+	{
+		pc = pc + imm.get_offset();
+		throw_if_branch_target_misaligned(pc);
+	}
+	else
+	{
+		pc += 4;
+	}
+
+	set_register(Rv32_register_id::pc, pc);
+}
+
+void Rv32_hart::execute_bgeu(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm)
+{
+	uint32_t pc = get_register(Rv32_register_id::pc);
+
+	// Unsigned comparison
+	uint32_t rs1_val = get_register(rs1);
+	uint32_t rs2_val = get_register(rs2);
 
 	if (rs1_val >= rs2_val)
 	{
