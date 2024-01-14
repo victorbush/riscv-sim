@@ -666,6 +666,23 @@ TEST(execute_andi, ImmediateGreaterThan12Bits) {
 }
 
 /* --------------------------------------------------------
+AUIPC
+-------------------------------------------------------- */
+
+TEST(execute_auipc, ValidInstruction) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 0x200);
+
+	// Only 20-bit immediate, ensure top bits are ignored
+	hart.execute_auipc(Rv32_register_id::x1, 0b1111'0101'1111'0101'1111'0101);
+
+	// Ensure 20-bit immediate is placed in high 20 bits
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x200 + 0b0101'1111'0101'1111'0101'0000'0000'0000);
+}
+
+/* --------------------------------------------------------
 BEQ
 -------------------------------------------------------- */
 
@@ -1173,23 +1190,6 @@ TEST(execute_bne, AddressMisalignedButBranchNotTaken) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 404); // PC just gets advanced to next instruction
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 4);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 4);
-}
-
-/* --------------------------------------------------------
-LUI
--------------------------------------------------------- */
-
-TEST(execute_auipc, ValidInstruction) {
-
-	auto memory = Simple_memory_subsystem();
-	auto hart = Rv32_hart(memory);
-	hart.set_register(Rv32_register_id::pc, 0x200);
-
-	// Only 20-bit immediate, ensure top bits are ignored
-	hart.execute_auipc(Rv32_register_id::x1, 0b1111'0101'1111'0101'1111'0101);
-
-	// Ensure 20-bit immediate is placed in high 20 bits
-	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x200 + 0b0101'1111'0101'1111'0101'0000'0000'0000);
 }
 
 /* --------------------------------------------------------
