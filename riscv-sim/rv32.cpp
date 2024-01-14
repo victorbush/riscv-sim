@@ -113,6 +113,10 @@ const map<uint32_t, Signature_match> instruction_signature_map2 = {
 	{ create_utype_signature(Rv32i_opcode::auipc), Rv32i_instruction_type::auipc },
 
 	{ create_branch_signature(Rv32_branch_funct3::beq), Rv32i_instruction_type::beq },
+	{ create_branch_signature(Rv32_branch_funct3::bge), Rv32i_instruction_type::bge },
+	{ create_branch_signature(Rv32_branch_funct3::bgeu), Rv32i_instruction_type::bgeu },
+	{ create_branch_signature(Rv32_branch_funct3::blt), Rv32i_instruction_type::blt },
+	{ create_branch_signature(Rv32_branch_funct3::bltu), Rv32i_instruction_type::bltu },
 	{ create_branch_signature(Rv32_branch_funct3::bne), Rv32i_instruction_type::bne },
 
 	{ create_op_imm_signature(Rv32_op_imm_funct::addi), Rv32i_instruction_type::addi },
