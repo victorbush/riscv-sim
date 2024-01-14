@@ -6,6 +6,16 @@
 
 using namespace std;
 
+/**
+The conditional branch instructions will generate an instruction-address-misaligned exception if the
+target address is not aligned to a four-byte boundary and the branch condition evaluates to true.
+If the branch condition evaluates to false, the instruction-address-misaligned exception will not be
+raised.
+*/
+#define throw_if_branch_target_misaligned(address) \
+if (( address ) % 4 != 0) \
+	throw exception("instruction-address-misaligned");
+
 namespace riscv_sim {
 
 Rv32_hart::Rv32_hart(Memory& memory)
@@ -50,7 +60,7 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 
 	// B-type
 
-	//{ Rv32i_instruction_type::beq, &Rv32_hart::execute_beq },
+	{ Rv32i_instruction_type::beq, &Rv32_hart::execute_beq },
 	//{ Rv32i_instruction_type::bge, &Rv32_hart::execute_bge },
 	//{ Rv32i_instruction_type::bgeu, &Rv32_hart::execute_bgeu },
 	//{ Rv32i_instruction_type::blt, &Rv32_hart::execute_blt },
@@ -109,12 +119,18 @@ void Rv32_hart::execute_next()
 	if (!instruction_executor_map.contains(next_inst_type))
 		throw exception("Not implemented.");
 
+	// Branch instructions handle updating the PC register manually
+	auto auto_inc_pc = true;
+
 	auto& executor = instruction_executor_map.at(next_inst_type);
 	switch (executor.format)
 	{
 	case Rv32_instruction_format::btype:
 	{
-		throw exception("Not implemented.");
+		auto btype = Rv32i_decoder::decode_btype(next_inst);
+		(*this.*(executor.execute_btype))(btype.rs1, btype.rs2, btype.imm);
+		auto_inc_pc = false;
+		break;
 	}
 
 	case Rv32_instruction_format::itype:
@@ -153,7 +169,8 @@ void Rv32_hart::execute_next()
 	}
 
 	// Increment PC
-	set_register(Rv32_register_id::pc, get_register(Rv32_register_id::pc) + 4);
+	if (auto_inc_pc)
+		set_register(Rv32_register_id::pc, get_register(Rv32_register_id::pc) + 4);
 }
 
 void Rv32_hart::execute_add(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
@@ -192,7 +209,21 @@ void Rv32_hart::execute_auipc(Rv32_register_id rd, Rv_utype_imm imm)
 
 void Rv32_hart::execute_beq(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm)
 {
-	throw exception("Not implemented.");
+	uint32_t pc = get_register(Rv32_register_id::pc);
+	uint32_t rs1_val = get_register(rs1);
+	uint32_t rs2_val = get_register(rs2);
+	
+	if (rs1_val == rs2_val)
+	{
+		pc = pc + imm.get_offset();
+		throw_if_branch_target_misaligned(pc);
+	}
+	else
+	{
+		pc += 4;
+	}
+
+	set_register(Rv32_register_id::pc, pc);
 }
 
 void Rv32_hart::execute_lui(Rv32_register_id rd, Rv_utype_imm imm)
