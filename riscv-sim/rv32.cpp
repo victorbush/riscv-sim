@@ -430,6 +430,11 @@ uint32_t Rv32_encoder::encode_blt(Rv32_register_id rs1, Rv32_register_id rs2, in
 	return encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::blt, rs1, rs2, offset);
 }
 
+uint32_t Rv32_encoder::encode_bltu(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+{
+	return encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bltu, rs1, rs2, offset);
+}
+
 uint32_t Rv32_encoder::encode_bne(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
 {
 	return encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bne, rs1, rs2, offset);
