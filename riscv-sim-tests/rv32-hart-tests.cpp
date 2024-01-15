@@ -273,6 +273,22 @@ TEST(execute_next, LHU) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x3020);
 }
 
+TEST(execute_next, LW) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_lw(Rv32_register_id::x2, Rv32_register_id::x3, 0);
+	memory.write_32(0x500, instruction);
+	memory.write_32(0x600, 0x40302010);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x3, 0x600);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x40302010);
+}
+
 TEST(execute_next, LUI) {
 
 	auto memory = Simple_memory_subsystem();
@@ -1684,6 +1700,102 @@ TEST(execute_lhu, SignExtended) {
 	hart.set_register(Rv32_register_id::x3, 4);
 	hart.execute_lhu(Rv32_register_id::x2, Rv32_register_id::x3, Rv_itype_imm::from_signed(0));
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 1 << 15);
+}
+
+/* --------------------------------------------------------
+LW
+-------------------------------------------------------- */
+
+TEST(execute_lw, PositiveOffset) {
+
+	auto memory = Simple_memory_subsystem();
+	memory.write_byte(96, 0x10);
+	memory.write_byte(97, 0x20);
+	memory.write_byte(98, 0x30);
+	memory.write_byte(99, 0x40);
+
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x3, 64);
+	hart.execute_lw(Rv32_register_id::x2, Rv32_register_id::x3, Rv_itype_imm::from_signed(32));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x40302010);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 64);
+}
+
+TEST(execute_lw, PositiveOffsetWrapAround) {
+
+	auto memory = Simple_memory_subsystem();
+	memory.write_byte(4, 0x10);
+	memory.write_byte(5, 0x20);
+	memory.write_byte(6, 0x30);
+	memory.write_byte(7, 0x40);
+
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x3, 0xFFFFFFFC);
+	hart.execute_lw(Rv32_register_id::x2, Rv32_register_id::x3, Rv_itype_imm::from_signed(8));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x40302010);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 0xFFFFFFFC);
+}
+
+TEST(execute_lw, NegativeOffset) {
+
+	auto memory = Simple_memory_subsystem();
+	memory.write_byte(32, 0x10);
+	memory.write_byte(33, 0x20);
+	memory.write_byte(34, 0x30);
+	memory.write_byte(35, 0x40);
+
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x3, 64);
+	hart.execute_lw(Rv32_register_id::x2, Rv32_register_id::x3, Rv_itype_imm::from_signed(-32));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x40302010);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 64);
+}
+
+TEST(execute_lw, NegativeOffsetWrapAround) {
+
+	auto memory = Simple_memory_subsystem();
+	memory.write_byte(0xFFFFFFFC, 0x10);
+	memory.write_byte(0xFFFFFFFD, 0x20);
+	memory.write_byte(0xFFFFFFFE, 0x30);
+	memory.write_byte(0xFFFFFFFF, 0x40);
+
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x3, 4);
+	hart.execute_lw(Rv32_register_id::x2, Rv32_register_id::x3, Rv_itype_imm::from_signed(-8));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x40302010);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 4);
+}
+
+TEST(execute_lw, ZeroOffset) {
+
+	auto memory = Simple_memory_subsystem();
+	memory.write_byte(4, 0x10);
+	memory.write_byte(5, 0x20);
+	memory.write_byte(6, 0x30);
+	memory.write_byte(7, 0x40);
+
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x3, 4);
+	hart.execute_lw(Rv32_register_id::x2, Rv32_register_id::x3, Rv_itype_imm::from_signed(0));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x40302010);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 4);
+}
+
+TEST(execute_lw, MisalignedAccess) {
+
+	// Address 5 is not on a 4 or 2 byte boundary, but that is allowed
+
+	auto memory = Simple_memory_subsystem();
+	memory.write_byte(5, 0x10);
+	memory.write_byte(6, 0x20);
+	memory.write_byte(7, 0x30);
+	memory.write_byte(8, 0x40);
+
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x3, 4);
+	hart.execute_lw(Rv32_register_id::x2, Rv32_register_id::x3, Rv_itype_imm::from_signed(1));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x40302010);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 4);
 }
 
 /* --------------------------------------------------------
