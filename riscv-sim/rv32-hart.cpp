@@ -342,7 +342,12 @@ void Rv32_hart::execute_lb(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_i
 	uint32_t rs1_val = get_register(rs1);
 	int32_t offset = imm.get_signed();
 	uint32_t address = rs1_val + offset;
-	uint8_t mem = memory.read_byte(address);
+	uint32_t mem = memory.read_byte(address);
+
+	// Sign extend
+	if (mem & 0b1000'0000)
+		mem |= (-1 << 8);
+
 	set_register(rd, mem);
 }
 

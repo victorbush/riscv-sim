@@ -223,6 +223,22 @@ TEST(execute_next, LB) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x20);
 }
 
+TEST(execute_next, LBU) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_lb(Rv32_register_id::x2, Rv32_register_id::x3, 0);
+	memory.write_32(0x500, instruction);
+	memory.write_byte(0x600, 0x20);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x3, 0x600);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x20);
+}
+
 TEST(execute_next, LUI) {
 
 	auto memory = Simple_memory_subsystem();
@@ -1292,6 +1308,19 @@ TEST(execute_lb, MisalignedAccess) {
 	hart.execute_lb(Rv32_register_id::x2, Rv32_register_id::x3, Rv_itype_imm::from_signed(1));
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 20);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 4);
+}
+
+TEST(execute_lb, SignExtended) {
+
+	// Ensures the result is signed extended
+
+	auto memory = Simple_memory_subsystem();
+	memory.write_byte(4, 0b1000'0000);
+
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x3, 4);
+	hart.execute_lb(Rv32_register_id::x2, Rv32_register_id::x3, Rv_itype_imm::from_signed(0));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), -1 << 7);
 }
 
 /* --------------------------------------------------------
