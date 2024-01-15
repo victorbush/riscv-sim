@@ -377,7 +377,12 @@ void Rv32_hart::execute_lh(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_i
 
 void Rv32_hart::execute_lhu(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
 {
-	throw exception("Not implemented.");
+	uint32_t rs1_val = get_register(rs1);
+	int32_t offset = imm.get_signed();
+	uint32_t address = rs1_val + offset;
+	uint32_t mem = memory.read_16(address);
+
+	set_register(rd, mem);
 }
 
 void Rv32_hart::execute_lw(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
