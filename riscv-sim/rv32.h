@@ -65,13 +65,25 @@ struct Rv_jtype_imm
 /** 12-bit immediate value used by S-type instructions. */
 struct Rv_stype_imm
 {
-	Rv_stype_imm(uint8_t encoded_7to11, uint8_t encoded_25to31);
+	/** Extracts an S-type immediate from an S-type instruction. */
+	static Rv_stype_imm from_instruction(uint32_t instruction);
+
+	/** Creates an S-type immediate from a decoded S-type offset. Throws an exception if offset is not within the allowed S-immediate range. */
+	static Rv_stype_imm from_offset(int32_t offset);
+
+	/** Encodes immediate into an empty 32-bit instruction. */
+	uint32_t get_encoded() const;
+
+	/** Gets the offset. The 12-bit immediate is sign extended. */
+	int32_t get_offset() const;
 
 private:
-	uint8_t encoded_7to11;  // Bits 7 through 11 when encoded
-	uint8_t encoded_25to31; // Bits 25 through 31 when encoded
-};
+	Rv_stype_imm(int32_t offset, uint32_t encoded);
 
+	uint32_t _encoded;  // Immediate value encoded into a 32-bit instruction
+	int32_t _offset;    // Decoded and sign-extended branch offset
+};
+ 
 /** 20-bit immediate value used by U-type instructions. These bits are used as the high 20 bits for a 32-bit value. */
 struct Rv_utype_imm
 {
@@ -226,6 +238,13 @@ enum class Rv32_instruction_format
 	rtype,
 	stype,
 	utype,
+};
+
+enum class Rv32_store_funct3 : uint8_t
+{
+	sb = 0b000,
+	sh = 0b001,
+	sw = 0b010,
 };
 
 enum class Rv32i_instruction_type
@@ -384,6 +403,7 @@ public:
 	static uint32_t encode_load(Rv32_load_funct3 funct3, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
 	static uint32_t encode_op(Rv32_op_funct3 funct3, Rv32_op_funct7 funct7, Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	static uint32_t encode_op_imm(Rv32_op_imm_funct funct, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
+	static uint32_t encode_store(Rv32_store_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm);
 	static uint32_t encode_utype(Rv32i_opcode opcode, Rv32_register_id rd, uint32_t imm);
 
 	static uint32_t encode_add(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
@@ -411,11 +431,14 @@ public:
 	static uint32_t encode_sltu(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	static uint32_t encode_slti(Rv32_register_id rd, Rv32_register_id rs1, int16_t imm);
 	static uint32_t encode_sltiu(Rv32_register_id rd, Rv32_register_id rs1, uint16_t imm);
+	static uint32_t encode_sb(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
+	static uint32_t encode_sh(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
 	static uint32_t encode_sra(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	static uint32_t encode_srai(Rv32_register_id rd, Rv32_register_id rs1, uint8_t shift_amount);
 	static uint32_t encode_srl(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	static uint32_t encode_srli(Rv32_register_id rd, Rv32_register_id rs1, uint8_t shift_amount);
 	static uint32_t encode_sub(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
+	static uint32_t encode_sw(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
 	static uint32_t encode_xori(Rv32_register_id rd, Rv32_register_id rs1, int16_t imm);
 	static uint32_t encode_xor(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 };

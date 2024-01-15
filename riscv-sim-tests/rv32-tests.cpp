@@ -372,3 +372,48 @@ TEST(Rv_itype_imm, from_unsigned__AboveMaxValue) {
 
 	EXPECT_THROW_EX(Rv_itype_imm::from_unsigned(4096), "Unsigned I-immediates must fall in the range [0, 4095].");
 }
+
+/* ========================================================
+
+Rv_stype_imm
+
+======================================================== */
+
+TEST(Rv_stype_imm, from_instruction__Valid) {
+
+	auto instruction = Rv32_encoder::encode_sb(Rv32_register_id::x1, Rv32_register_id::x2, -1);
+	auto imm = Rv_stype_imm::from_instruction(instruction);
+	EXPECT_EQ(imm.get_encoded(), 0b1111'1110'0000'0000'0000'1111'1000'0000);
+	EXPECT_EQ(imm.get_offset(), -1);
+}
+
+TEST(Rv_stype_imm, from_instruction__SignExtended) {
+
+	// Ensure sign extended
+	uint32_t instruction = 1 << 31;
+	auto imm = Rv_stype_imm::from_instruction(instruction);
+	EXPECT_EQ(imm.get_encoded(), 1 << 31);
+	EXPECT_EQ(imm.get_offset(), -1 << 11);
+}
+
+TEST(Rv_stype_imm, from_offset__AtMaxValue) {
+
+	auto imm = Rv_stype_imm::from_offset(2047);
+	EXPECT_EQ(imm.get_offset(), 2047);
+}
+
+TEST(Rv_stype_imm, from_offset_AtMinValue) {
+
+	auto imm = Rv_stype_imm::from_offset(-2048);
+	EXPECT_EQ(imm.get_offset(), -2048);
+}
+
+TEST(Rv_stype_imm, from_offset__AboveMaxValue) {
+
+	EXPECT_THROW_EX(Rv_stype_imm::from_offset(2048), "S-immediates must fall in the range [-2048, 2047].");
+}
+
+TEST(Rv_stype_imm, from_offset__BelowMinValue) {
+
+	EXPECT_THROW_EX(Rv_stype_imm::from_offset(-2049), "S-immediates must fall in the range [-2048, 2047].");
+}

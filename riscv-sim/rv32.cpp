@@ -394,6 +394,12 @@ uint32_t Rv32_encoder::encode_op_imm(Rv32_op_imm_funct funct, Rv32_register_id r
 	return imm.get_encoded() | (to_underlying(rs1) << 15) | (to_underlying(funct) << 12) | (to_underlying(rd) << 7) | (to_underlying(Rv32i_opcode::op_imm));
 }
 
+uint32_t Rv32_encoder::encode_store(Rv32_store_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm)
+{
+	return imm.get_encoded() | (to_underlying(rs2) << 20) | (to_underlying(rs1) << 15) | (to_underlying(funct3) << 12) | (to_underlying(Rv32i_opcode::store));
+}
+
+
 
 
 
@@ -540,6 +546,18 @@ uint32_t Rv32_encoder::encode_sltiu(Rv32_register_id rd, Rv32_register_id rs1, u
 	return encode_op_imm(Rv32_op_imm_funct::sltiu, rd, rs1, immediate);
 }
 
+uint32_t Rv32_encoder::encode_sb(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+{
+	const auto imm = Rv_stype_imm::from_offset(offset);
+	return encode_store(Rv32_store_funct3::sb, rs1, rs2, imm);
+}
+
+uint32_t Rv32_encoder::encode_sh(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+{
+	const auto imm = Rv_stype_imm::from_offset(offset);
+	return encode_store(Rv32_store_funct3::sh, rs1, rs2, imm);
+}
+
 uint32_t Rv32_encoder::encode_sra(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::sra, Rv32_op_funct7::sra, rd, rs1, rs2);
@@ -566,6 +584,12 @@ uint32_t Rv32_encoder::encode_srli(Rv32_register_id rd, Rv32_register_id rs1, ui
 uint32_t Rv32_encoder::encode_sub(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::sub, Rv32_op_funct7::sub, rd, rs1, rs2);
+}
+
+uint32_t Rv32_encoder::encode_sw(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+{
+	const auto imm = Rv_stype_imm::from_offset(offset);
+	return encode_store(Rv32_store_funct3::sw, rs1, rs2, imm);
 }
 
 uint32_t Rv32_encoder::encode_xori(Rv32_register_id rd, Rv32_register_id rs1, int16_t imm)
@@ -734,6 +758,57 @@ uint32_t Rv_itype_imm::get_unsigned() const
 uint8_t Rv_itype_imm::get_shift_amount() const
 {
 	return static_cast<uint8_t>(0b11111 & _immediate);
+}
+
+/* ========================================================
+
+Rv_stype_imm
+
+======================================================== */
+
+Rv_stype_imm Rv_stype_imm::from_instruction(uint32_t instruction)
+{
+	const auto bits_0to4 = (instruction >> 7) & 0b11111;
+	const auto bits_5to11 = (instruction >> 25) & 0b1111111;
+
+	int32_t offset = bits_0to4 | (bits_5to11 << 5);
+
+	// Sign extend
+	if (instruction & (1 << 31))
+		offset |= 0b1111'1111'1111'1111'1111'0000'0000'0000;
+
+	// Store the encoded immediate value (clear unrelated bits of the instruction)
+	uint32_t encoded = instruction & 0b1111'1110'0000'0000'0000'1111'1000'0000;
+
+	return Rv_stype_imm(offset, encoded);
+}
+
+Rv_stype_imm Rv_stype_imm::from_offset(int32_t offset)
+{
+	// Valid signed range: [-2048, 2047]
+	if (offset < -2048 || offset > 2047)
+		throw exception("S-immediates must fall in the range [-2048, 2047].");
+
+	const auto encoded_bits_7to11 = offset & 0b11111;
+	const auto encoded_bits_25to31 = (offset >> 5) & 0b1111111;
+	uint32_t encoded = (encoded_bits_7to11 << 7) | (encoded_bits_25to31 << 25);
+
+	return Rv_stype_imm(offset, encoded);
+}
+
+Rv_stype_imm::Rv_stype_imm(int32_t offset, uint32_t encoded)
+	: _offset(offset), _encoded(encoded)
+{
+}
+
+uint32_t Rv_stype_imm::get_encoded() const
+{
+	return _encoded;
+}
+
+int32_t Rv_stype_imm::get_offset() const
+{
+	return _offset;
 }
 
 }
