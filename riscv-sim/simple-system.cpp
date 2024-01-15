@@ -77,17 +77,23 @@ void Simple_memory_subsystem::write_32(uint32_t address, uint32_t value)
 	memory[address + 3] = 0xFF & (value >> 24);
 }
 
-uint8_t Simple_memory_subsystem::read_byte(uint32_t address)
+uint8_t Simple_memory_subsystem::read_byte(uint32_t address) const
 {
-	return memory[address];
+	return memory.at(address);
 }
 
-uint32_t Simple_memory_subsystem::read_32(uint32_t address)
+uint16_t Simple_memory_subsystem::read_16(uint32_t address) const
 {
-	return (memory[address]
-		| (memory[address + 1] << 8)
-		| (memory[address + 2] << 16)
-		| (memory[address + 3] << 24));
+	return (memory.at(address)
+		| (memory.at(address + 1) << 8));
+}
+
+uint32_t Simple_memory_subsystem::read_32(uint32_t address) const
+{
+	return (memory.at(address)
+		| (memory.at(address + 1) << 8)
+		| (memory.at(address + 2) << 16)
+		| (memory.at(address + 3) << 24));
 }
 
 }
