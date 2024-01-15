@@ -16,7 +16,7 @@ TEST(decode_rv32i_itype, VariousTests) {
 	EXPECT_EQ(result.funct3, 3);
 	EXPECT_EQ(result.rd, Rv32_register_id::x5);
 	EXPECT_EQ(result.rs1, Rv32_register_id::x2);
-	EXPECT_EQ(result.imm.to_i32(), 321);
+	EXPECT_EQ(result.imm.get_signed(), 321);
 }
 
 TEST(decode_rv32i_itype, EnsureImmSignExtended) {
@@ -25,22 +25,22 @@ TEST(decode_rv32i_itype, EnsureImmSignExtended) {
 	// Immediate with 0 value
 	uint32_t instruction = (0b0000'0000'0000 << 20) | (2 << 15) | (3 << 12) | (5 << 7) | (0b0010011);
 	auto result = Rv32i_decoder::decode_rv32i_itype(instruction);
-	EXPECT_EQ(result.imm.to_i32(), 0);
+	EXPECT_EQ(result.imm.get_signed(), 0);
 
 	// Immediate with non-zero value, but 0 in sign bit
 	instruction = (0b0101'0000'0000 << 20) | (2 << 15) | (3 << 12) | (5 << 7) | (0b0010011);
 	result = Rv32i_decoder::decode_rv32i_itype(instruction);
-	EXPECT_EQ(result.imm.to_i32(), 1280);
+	EXPECT_EQ(result.imm.get_signed(), 1280);
 
 	// Immediate with non-zero value, but 1 in sign bit
 	instruction = (0b1101'0000'0000 << 20) | (2 << 15) | (3 << 12) | (5 << 7) | (0b0010011);
 	result = Rv32i_decoder::decode_rv32i_itype(instruction);
-	EXPECT_EQ(result.imm.to_i32(), -768);
+	EXPECT_EQ(result.imm.get_signed(), -768);
 
 	// Immediate with all 12 bits set
 	instruction = (0b1111'1111'1111 << 20) | (2 << 15) | (3 << 12) | (5 << 7) | (0b0010011);
 	result = Rv32i_decoder::decode_rv32i_itype(instruction);
-	EXPECT_EQ(result.imm.to_i32(), -1);
+	EXPECT_EQ(result.imm.get_signed(), -1);
 }
 
 TEST(decode_rv32i_instruction_type, SLTI) {
@@ -52,7 +52,7 @@ TEST(decode_rv32i_instruction_type, SLTI) {
 
 TEST(encode_btype, ValidInstruction) {
 
-	auto instruction = Rv32_encoder::encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bge, Rv32_register_id::x2, Rv32_register_id::x15, -320);
+	auto instruction = Rv32_encoder::encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bge, Rv32_register_id::x2, Rv32_register_id::x15, Rv_btype_imm::from_offset(-320));
 	auto result = Rv32i_decoder::decode_btype(instruction);
 	EXPECT_EQ(result.opcode, Rv32i_opcode::branch);
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_branch_funct3::bge));
@@ -69,7 +69,7 @@ TEST(encode_addi, ValidInstruction) {
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::addi));
 	EXPECT_EQ(result.rd, Rv32_register_id::x2);
 	EXPECT_EQ(result.rs1, Rv32_register_id::x9);
-	EXPECT_EQ(result.imm.to_i32(), 123);
+	EXPECT_EQ(result.imm.get_signed(), 123);
 }
 
 TEST(encode_auipc, ValidInstruction) {
@@ -103,7 +103,7 @@ TEST(encode_slli, ValidInstruction) {
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::slli));
 	EXPECT_EQ(result.rd, Rv32_register_id::x2);
 	EXPECT_EQ(result.rs1, Rv32_register_id::x9);
-	EXPECT_EQ(result.imm.to_u32(), 0b11111);
+	EXPECT_EQ(result.imm.get_signed(), 0b11111);
 }
 
 TEST(encode_slti, ValidInstruction) {
@@ -114,7 +114,7 @@ TEST(encode_slti, ValidInstruction) {
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::slti));
 	EXPECT_EQ(result.rd, Rv32_register_id::x2);
 	EXPECT_EQ(result.rs1, Rv32_register_id::x9);
-	EXPECT_EQ(result.imm.to_i32(), 123);
+	EXPECT_EQ(result.imm.get_signed(), 123);
 }
 
 TEST(encode_srai, ValidInstruction) {
@@ -126,7 +126,7 @@ TEST(encode_srai, ValidInstruction) {
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::srxi));
 	EXPECT_EQ(result.rd, Rv32_register_id::x2);
 	EXPECT_EQ(result.rs1, Rv32_register_id::x9);
-	EXPECT_EQ(result.imm.to_u32(), 0b0100'0001'1111);
+	EXPECT_EQ(result.imm.get_signed(), 0b0100'0001'1111);
 }
 
 TEST(encode_srli, ValidInstruction) {
@@ -138,7 +138,7 @@ TEST(encode_srli, ValidInstruction) {
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::srxi));
 	EXPECT_EQ(result.rd, Rv32_register_id::x2);
 	EXPECT_EQ(result.rs1, Rv32_register_id::x9);
-	EXPECT_EQ(result.imm.to_u32(), 0b11111);
+	EXPECT_EQ(result.imm.get_signed(), 0b11111);
 }
 
 TEST(get_rv32_register_id, ValidRange) {
@@ -197,6 +197,12 @@ TEST(get_rv32i_opcode, ValidAndInvalidValues) {
 		EXPECT_EQ(result, test.second);
 	}
 }
+
+/* ========================================================
+
+Rv_btype_imm
+
+======================================================== */
 
 TEST(Rv_btype_imm, get_offset) {
 
@@ -294,4 +300,75 @@ TEST(Rv_btype_imm, AtMaxValue) {
 TEST(Rv_btype_imm, AboveMaxValue) {
 
 	EXPECT_THROW_EX(Rv_btype_imm::from_offset(4096), "Conditional branch offsets must fall in the range [-4096, 4094].");
+}
+
+/* ========================================================
+
+Rv_itype_imm
+
+======================================================== */
+
+TEST(Rv_itype_imm, from_instruction__ValidNegative) {
+
+	auto instruction = Rv32_encoder::encode_lb(Rv32_register_id::x1, Rv32_register_id::x2, -1);
+	auto imm = Rv_itype_imm::from_instruction(instruction);
+	EXPECT_EQ(imm.get_encoded(), -1 << 20);
+	EXPECT_EQ(imm.get_signed(), -1);
+	EXPECT_EQ(imm.get_unsigned(), 0xFFF);
+}
+
+TEST(Rv_itype_imm, from_instruction__ValidPositive) {
+
+	auto instruction = Rv32_encoder::encode_lb(Rv32_register_id::x1, Rv32_register_id::x2, 27);
+	auto imm = Rv_itype_imm::from_instruction(instruction);
+	EXPECT_EQ(imm.get_encoded(), 27 << 20);
+	EXPECT_EQ(imm.get_signed(), 27);
+	EXPECT_EQ(imm.get_unsigned(), 27);
+}
+
+TEST(Rv_itype_imm, from_signed_AtMaxValue) {
+
+	auto imm = Rv_itype_imm::from_signed(2047);
+	EXPECT_EQ(imm.get_encoded(), 2047 << 20);
+	EXPECT_EQ(imm.get_signed(), 2047);
+	EXPECT_EQ(imm.get_unsigned(), 2047);
+}
+
+TEST(Rv_itype_imm, from_signed_AtMinValue) {
+
+	auto imm = Rv_itype_imm::from_signed(-2048);
+	EXPECT_EQ(imm.get_encoded(), -2048 << 20);
+	EXPECT_EQ(imm.get_signed(), -2048);
+	EXPECT_EQ(imm.get_unsigned(), 2048);
+}
+
+TEST(Rv_itype_imm, from_signed__AboveMaxValue) {
+
+	EXPECT_THROW_EX(Rv_itype_imm::from_signed(2048), "Signed I-immediates must fall in the range [-2048, 2047].");
+}
+
+TEST(Rv_itype_imm, from_signed__BelowMinValue) {
+
+	EXPECT_THROW_EX(Rv_itype_imm::from_signed(-2049), "Signed I-immediates must fall in the range [-2048, 2047].");
+}
+
+TEST(Rv_itype_imm, from_unsigned_AtMaxValue) {
+
+	auto imm = Rv_itype_imm::from_unsigned(4095);
+	EXPECT_EQ(imm.get_encoded(), 4095 << 20);
+	EXPECT_EQ(imm.get_signed(), -1);
+	EXPECT_EQ(imm.get_unsigned(), 4095);
+}
+
+TEST(Rv_itype_imm, from_unsigned_AtMinValue) {
+
+	auto imm = Rv_itype_imm::from_unsigned(0);
+	EXPECT_EQ(imm.get_encoded(), 0);
+	EXPECT_EQ(imm.get_signed(), 0);
+	EXPECT_EQ(imm.get_unsigned(), 0);
+}
+
+TEST(Rv_itype_imm, from_unsigned__AboveMaxValue) {
+
+	EXPECT_THROW_EX(Rv_itype_imm::from_unsigned(4096), "Unsigned I-immediates must fall in the range [0, 4095].");
 }

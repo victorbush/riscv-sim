@@ -191,7 +191,7 @@ void Rv32_hart::execute_add(Rv32_register_id rd, Rv32_register_id rs1, Rv32_regi
 void Rv32_hart::execute_addi(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
 {
 	int32_t source = get_register(rs1);
-	int32_t immediate = imm.to_i32();
+	int32_t immediate = imm.get_signed();
 	set_register(rd, source + immediate);
 }
 
@@ -205,7 +205,7 @@ void Rv32_hart::execute_and(Rv32_register_id rd, Rv32_register_id rs1, Rv32_regi
 void Rv32_hart::execute_andi(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
 {
 	int32_t source = get_register(rs1);
-	int32_t immediate = imm.to_i32();
+	int32_t immediate = imm.get_signed();
 	set_register(rd, source & immediate);
 }
 
@@ -340,7 +340,7 @@ void Rv32_hart::execute_bne(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype
 void Rv32_hart::execute_lb(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
 {
 	uint32_t rs1_val = get_register(rs1);
-	int32_t offset = imm.to_i32();
+	int32_t offset = imm.get_signed();
 	uint32_t address = rs1_val + offset;
 	uint8_t mem = memory.read_byte(address);
 	set_register(rd, mem);
@@ -381,7 +381,7 @@ void Rv32_hart::execute_or(Rv32_register_id rd, Rv32_register_id rs1, Rv32_regis
 void Rv32_hart::execute_ori(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
 {
 	int32_t source = get_register(rs1);
-	int32_t immediate = imm.to_i32();
+	int32_t immediate = imm.get_signed();
 	set_register(rd, source | immediate);
 }
 
@@ -413,7 +413,7 @@ void Rv32_hart::execute_slti(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype
 {
 	// rd = (rs1 < imm) ? 1 : 0;
 	int32_t source = get_register(rs1);
-	int32_t immediate = imm.to_i32();
+	int32_t immediate = imm.get_signed();
 	set_register(rd, (source < immediate) ? 1 : 0);
 }
 
@@ -421,7 +421,7 @@ void Rv32_hart::execute_sltiu(Rv32_register_id rd, Rv32_register_id rs1, Rv_ityp
 {
 	// rd = (rs1 < imm) ? 1 : 0;
 	uint32_t source = get_register(rs1);
-	uint32_t immediate = imm.to_u32();
+	uint32_t immediate = imm.get_unsigned();
 	set_register(rd, (source < immediate) ? 1 : 0);
 }
 
@@ -485,7 +485,7 @@ void Rv32_hart::execute_xor(Rv32_register_id rd, Rv32_register_id rs1, Rv32_regi
 void Rv32_hart::execute_xori(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
 {
 	int32_t source = get_register(rs1);
-	int32_t immediate = imm.to_i32();
+	int32_t immediate = imm.get_signed();
 	set_register(rd, source ^ immediate);
 }
 
