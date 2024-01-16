@@ -197,6 +197,11 @@ enum class Rv32_branch_funct3 : uint8_t
 	bgeu = 0b111,
 };
 
+enum class Rv32_jalr_funct3 : uint8_t
+{
+	jalr = 0b000,
+};
+
 enum class Rv32_load_funct3 : uint8_t
 {
 	lb = 0b000,
@@ -435,6 +440,7 @@ class Rv32_encoder
 public:
 	static uint32_t encode_btype(Rv32i_opcode opcode, Rv32_branch_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm);
 	static uint32_t encode_jal(Rv32_register_id rd, Rv_jtype_imm imm);
+	static uint32_t encode_jalr(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
 	static uint32_t encode_load(Rv32_load_funct3 funct3, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
 	static uint32_t encode_op(Rv32_op_funct3 funct3, Rv32_op_funct7 funct7, Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	static uint32_t encode_op_imm(Rv32_op_imm_funct funct, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);

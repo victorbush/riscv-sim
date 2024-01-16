@@ -38,14 +38,16 @@ typedef void (Rv32_hart::* utype_executor)(Rv32_register_id rd, Rv_utype_imm imm
 /** Defines the instruction format and a pointer to the member method that executes the instruction. */
 struct Instruction_executor
 {
-	Instruction_executor(btype_executor btype) : execute_btype(btype), format(Rv32_instruction_format::btype) {}
-	Instruction_executor(itype_executor itype) : execute_itype(itype), format(Rv32_instruction_format::itype) {}
-	Instruction_executor(jtype_executor jtype) : execute_jtype(jtype), format(Rv32_instruction_format::jtype) {}
-	Instruction_executor(rtype_executor rtype) : execute_rtype(rtype), format(Rv32_instruction_format::rtype) {}
-	Instruction_executor(stype_executor stype) : execute_stype(stype), format(Rv32_instruction_format::stype) {}
-	Instruction_executor(utype_executor utype) : execute_utype(utype), format(Rv32_instruction_format::utype) {}
+	Instruction_executor(btype_executor btype) : execute_btype(btype), format(Rv32_instruction_format::btype), manages_pc(true) {}
+	Instruction_executor(itype_executor itype) : execute_itype(itype), format(Rv32_instruction_format::itype), manages_pc(false) {}
+	Instruction_executor(itype_executor itype, bool manages_pc) : execute_itype(itype), format(Rv32_instruction_format::itype), manages_pc(manages_pc)  {}
+	Instruction_executor(jtype_executor jtype) : execute_jtype(jtype), format(Rv32_instruction_format::jtype), manages_pc(true) {}
+	Instruction_executor(rtype_executor rtype) : execute_rtype(rtype), format(Rv32_instruction_format::rtype), manages_pc(false) {}
+	Instruction_executor(stype_executor stype) : execute_stype(stype), format(Rv32_instruction_format::stype), manages_pc(false) {}
+	Instruction_executor(utype_executor utype) : execute_utype(utype), format(Rv32_instruction_format::utype), manages_pc(false) {}
 
 	Rv32_instruction_format format;
+	bool manages_pc; // True if the executor function manages updating the program counter. If false, PC will be automatically updated.
 
 	union
 	{
@@ -70,6 +72,18 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 	{ Rv32i_instruction_type::bltu, &Rv32_hart::execute_bltu },
 	{ Rv32i_instruction_type::bne, &Rv32_hart::execute_bne },
 
+	// I-type - JALR
+
+	{ Rv32i_instruction_type::jalr, Instruction_executor(&Rv32_hart::execute_jalr, true) },
+
+	// I-type - LOAD
+
+	{ Rv32i_instruction_type::lb, &Rv32_hart::execute_lb },
+	{ Rv32i_instruction_type::lbu, &Rv32_hart::execute_lbu },
+	{ Rv32i_instruction_type::lh, &Rv32_hart::execute_lh },
+	{ Rv32i_instruction_type::lhu, &Rv32_hart::execute_lhu },
+	{ Rv32i_instruction_type::lw, &Rv32_hart::execute_lw },
+
 	// I-type - OP-IMM
 
 	{ Rv32i_instruction_type::addi, &Rv32_hart::execute_addi },
@@ -81,14 +95,6 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 	{ Rv32i_instruction_type::srli, &Rv32_hart::execute_srli },
 	{ Rv32i_instruction_type::srai, &Rv32_hart::execute_srai },
 	{ Rv32i_instruction_type::xori, &Rv32_hart::execute_xori },
-
-	// I-type - LOAD
-
-	{ Rv32i_instruction_type::lb, &Rv32_hart::execute_lb },
-	{ Rv32i_instruction_type::lbu, &Rv32_hart::execute_lbu },
-	{ Rv32i_instruction_type::lh, &Rv32_hart::execute_lh },
-	{ Rv32i_instruction_type::lhu, &Rv32_hart::execute_lhu },
-	{ Rv32i_instruction_type::lw, &Rv32_hart::execute_lw },
 
 	// J-type
 
@@ -131,9 +137,6 @@ void Rv32_hart::execute_next()
 	if (!instruction_executor_map.contains(next_inst_type))
 		throw exception("Not implemented.");
 
-	// Branch instructions handle updating the PC register manually
-	auto auto_inc_pc = true;
-
 	auto& executor = instruction_executor_map.at(next_inst_type);
 	switch (executor.format)
 	{
@@ -141,7 +144,6 @@ void Rv32_hart::execute_next()
 	{
 		auto btype = Rv32i_decoder::decode_btype(next_inst);
 		(*this.*(executor.execute_btype))(btype.rs1, btype.rs2, btype.imm);
-		auto_inc_pc = false;
 		break;
 	}
 
@@ -156,7 +158,6 @@ void Rv32_hart::execute_next()
 	{
 		auto jtype = Rv32i_decoder::decode_jtype(next_inst);
 		(*this.*(executor.execute_jtype))(jtype.rd, jtype.imm);
-		auto_inc_pc = false;
 		break;
 	}
 
@@ -185,8 +186,9 @@ void Rv32_hart::execute_next()
 		throw exception("Not implemented.");
 	}
 
-	// Increment PC
-	if (auto_inc_pc)
+	// Certain instructions (i.e., branches) handle updating the PC register manually.
+	// If the executor doesn't manage the PC, auto-increment it here
+	if (!executor.manages_pc)
 		set_register(Rv32_register_id::pc, get_register(Rv32_register_id::pc) + 4);
 }
 
@@ -359,6 +361,11 @@ void Rv32_hart::execute_jal(Rv32_register_id rd, Rv_jtype_imm imm)
 
 	// RD is set to instruction after the jump instruction (PC + 4)
 	set_register(rd, pc + 4);
+}
+
+void Rv32_hart::execute_jalr(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+{
+	throw exception("Not implemented.");
 }
 
 void Rv32_hart::execute_lb(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)

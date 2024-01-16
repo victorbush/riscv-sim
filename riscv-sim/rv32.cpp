@@ -123,6 +123,7 @@ const map<uint32_t, Signature_match> instruction_signature_map2 = {
 	{ create_utype_signature(Rv32i_opcode::lui), Rv32i_instruction_type::lui },
 
 	{ create_jtype_signature(Rv32i_opcode::jal), Rv32i_instruction_type::jal },
+	{ create_jtype_signature(Rv32i_opcode::jalr), Rv32i_instruction_type::jalr },
 
 	{ create_branch_signature(Rv32_branch_funct3::beq), Rv32i_instruction_type::beq },
 	{ create_branch_signature(Rv32_branch_funct3::bge), Rv32i_instruction_type::bge },
@@ -250,7 +251,7 @@ const auto rv32_opcode_mask_map = map<uint8_t, uint32_t>() = {
 	{ to_underlying(Rv32i_opcode::auipc), rv32i_utype_mask },
 	{ to_underlying(Rv32i_opcode::branch), rv32i_btype_mask },
 	{ to_underlying(Rv32i_opcode::jal), rv32i_jtype_mask },
-	//{ to_underlying(Rv32i_opcode::jalr), rv32i_itype_mask },
+	{ to_underlying(Rv32i_opcode::jalr), rv32i_itype_mask },
 	{ to_underlying(Rv32i_opcode::load), rv32i_itype_mask },
 	{ to_underlying(Rv32i_opcode::lui), rv32i_utype_mask },
 	//{ to_underlying(Rv32i_opcode::misc_mem), rv32i_itype_mask },
@@ -425,6 +426,11 @@ uint32_t Rv32_encoder::encode_btype(Rv32i_opcode opcode, Rv32_branch_funct3 func
 uint32_t Rv32_encoder::encode_jal(Rv32_register_id rd, Rv_jtype_imm imm)
 {
 	return imm.get_encoded() | (to_underlying(rd) << 7) | to_underlying(Rv32i_opcode::jal);
+}
+
+uint32_t Rv32_encoder::encode_jalr(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+{
+	return imm.get_encoded() | (to_underlying(rs1) << 15) | (to_underlying(Rv32_jalr_funct3::jalr) << 12) | (to_underlying(rd) << 7) | (to_underlying(Rv32i_opcode::jalr));
 }
 
 uint32_t Rv32_encoder::encode_load(Rv32_load_funct3 funct3, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
