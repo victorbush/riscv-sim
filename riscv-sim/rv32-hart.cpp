@@ -106,7 +106,9 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 
 	// S-type
 
-
+	{ Rv32i_instruction_type::sb, &Rv32_hart::execute_sb },
+	{ Rv32i_instruction_type::sh, &Rv32_hart::execute_sh },
+	{ Rv32i_instruction_type::sw, &Rv32_hart::execute_sw },
 
 	// U-type
 
@@ -162,7 +164,9 @@ void Rv32_hart::execute_next()
 
 	case Rv32_instruction_format::stype:
 	{
-		throw exception("Not implemented.");
+		auto stype = Rv32i_decoder::decode_stype(next_inst);
+		(*this.*(executor.execute_stype))(stype.rs1, stype.rs2, stype.imm);
+		break;
 	}
 
 	case Rv32_instruction_format::utype:
@@ -414,6 +418,23 @@ void Rv32_hart::execute_ori(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_
 	set_register(rd, source | immediate);
 }
 
+void Rv32_hart::execute_sb(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm)
+{
+	uint32_t rs1_val = get_register(rs1);
+	uint32_t rs2_val = get_register(rs2);
+
+	int32_t offset = imm.get_offset();
+	uint32_t address = rs1_val + offset;
+	uint8_t val_to_write = static_cast<uint8_t>(rs2_val) & 0xFF;
+
+	memory.write_byte(address, val_to_write);
+}
+
+void Rv32_hart::execute_sh(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm)
+{
+	throw exception("Not implemented.");
+}
+
 void Rv32_hart::execute_sll(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
 {
 	// Logical left shift on the value in rs1 by the shift amount held in the lower 5 bits of rs2.
@@ -502,6 +523,11 @@ void Rv32_hart::execute_sub(Rv32_register_id rd, Rv32_register_id rs1, Rv32_regi
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
 	set_register(rd, rs1_val - rs2_val);
+}
+
+void Rv32_hart::execute_sw(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm)
+{
+	throw exception("Not implemented.");
 }
 
 void Rv32_hart::execute_xor(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)

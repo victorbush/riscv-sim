@@ -66,6 +66,11 @@ static uint32_t create_op_imm_signature(Rv32_op_imm_funct funct)
 	return create_itype_signature(Rv32i_opcode::op_imm, to_underlying(funct));
 }
 
+static uint32_t create_store_signature(Rv32_store_funct3 funct3)
+{
+	return create_stype_signature(Rv32i_opcode::store, to_underlying(funct3));
+}
+
 /** Function type used for functions that resolve instruction type lookups. */
 using Rv_instruction_type_resolver = std::add_pointer_t<Rv32i_instruction_type(uint32_t instruction)>;
 
@@ -150,6 +155,9 @@ const map<uint32_t, Signature_match> instruction_signature_map2 = {
 	{ create_op_signature(Rv32_op_funct3::sub, Rv32_op_funct7::sub), Rv32i_instruction_type::sub },
 	{ create_op_signature(Rv32_op_funct3::xor_, Rv32_op_funct7::xor_), Rv32i_instruction_type::xor_ },
 
+	{ create_store_signature(Rv32_store_funct3::sb), Rv32i_instruction_type::sb },
+	{ create_store_signature(Rv32_store_funct3::sh), Rv32i_instruction_type::sh },
+	{ create_store_signature(Rv32_store_funct3::sw), Rv32i_instruction_type::sw },
 };
 
 //
@@ -246,7 +254,7 @@ const auto rv32_opcode_mask_map = map<uint8_t, uint32_t>() = {
 	//{ to_underlying(Rv32i_opcode::misc_mem), rv32i_itype_mask },
 	{ to_underlying(Rv32i_opcode::op), rv32i_rtype_mask },
 	{ to_underlying(Rv32i_opcode::op_imm), rv32i_itype_mask },
-	//{ to_underlying(Rv32i_opcode::store), rv32i_stype_mask },
+	{ to_underlying(Rv32i_opcode::store), rv32i_stype_mask },
 	//{ to_underlying(Rv32i_opcode::system), rv32i_itype_mask },
 };
 
@@ -349,6 +357,28 @@ Rv_rtype_instruction Rv32i_decoder::decode_rtype(uint32_t instruction)
 	i.rs2 = rs2;
 
 	return i;
+}
+
+Rv_stype_instruction Rv32i_decoder::decode_stype(uint32_t instruction)
+{
+	// 31        25 | 24     20 | 19     15 | 14    12 | 11     7 | 6      0
+	//   imm[11:5]       rs2         rs1       funct3    imm[4:0]    opcode
+
+	const auto opcode = get_rv32i_opcode(instruction);
+	if (opcode == Rv32i_opcode::invalid)
+		throw exception("Invalid instruction.");
+
+	const auto imm = Rv_stype_imm::from_instruction(instruction);
+
+	const uint8_t rs2_raw = 0b1'1111 & (instruction >> 20);
+	const auto rs2 = get_rv32_register_id(rs2_raw);
+
+	const uint8_t rs1_raw = 0b1'1111 & (instruction >> 15);
+	const auto rs1 = get_rv32_register_id(rs1_raw);
+
+	const uint8_t funct3 = 0b111 & (instruction >> 12);
+
+	return Rv_stype_instruction(opcode, funct3, rs1, rs2, imm);
 }
 
 Rv_utype_instruction Rv32i_decoder::decode_utype(uint32_t instruction)

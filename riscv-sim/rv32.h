@@ -330,6 +330,15 @@ struct Rv_rtype_instruction
 	Rv32_register_id rs2;
 };
 
+struct Rv_stype_instruction
+{
+	Rv32i_opcode opcode;
+	uint8_t funct3;
+	Rv32_register_id rs1;
+	Rv32_register_id rs2;
+	Rv_stype_imm imm;
+};
+
 struct Rv_utype_instruction
 {
 	Rv32i_opcode opcode;
@@ -391,6 +400,7 @@ public:
 	static Rv32i_itype_instruction decode_rv32i_itype(uint32_t instruction);
 	static Rv_btype_instruction decode_btype(uint32_t instruction);
 	static Rv_rtype_instruction decode_rtype(uint32_t instruction);
+	static Rv_stype_instruction decode_stype(uint32_t instruction);
 	static Rv_utype_instruction decode_utype(uint32_t instruction);
 	static Rv32_register_id get_rv32_register_id(uint8_t encoded_register);
 	static Rv32i_opcode get_rv32i_opcode(uint32_t instruction);

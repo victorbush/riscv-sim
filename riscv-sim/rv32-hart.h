@@ -32,6 +32,8 @@ public:
 	void execute_next();
 	void execute_or(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	void execute_ori(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
+	void execute_sb(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm);
+	void execute_sh(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm);
 	void execute_sll(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	void execute_slt(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	void execute_sltu(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
@@ -43,6 +45,7 @@ public:
 	void execute_srl(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	void execute_srli(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
 	void execute_sub(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
+	void execute_sw(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm);
 	void execute_xor(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	void execute_xori(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
 

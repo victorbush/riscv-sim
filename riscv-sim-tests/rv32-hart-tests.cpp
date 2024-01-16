@@ -357,6 +357,25 @@ TEST(execute_next, ORI) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
 }
 
+TEST(execute_next, SB) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_sb(Rv32_register_id::x2, Rv32_register_id::x3, 0x10);
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x2, 0x600);
+	hart.set_register(Rv32_register_id::x3, 0x30);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x600);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 0x30);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
+	EXPECT_EQ(memory.read_byte(0x610), 0x30);
+}
+
 TEST(execute_next, SLL) {
 
 	auto memory = Simple_memory_subsystem();
@@ -1850,6 +1869,98 @@ TEST(execute_ori, ValidInstruction) {
 	hart.set_register(Rv32_register_id::x2, 0b01000000000000110);
 	hart.execute_ori(Rv32_register_id::x1, Rv32_register_id::x2, Rv_itype_imm::from_signed(0b1001));
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b01000000000001111);
+}
+
+/* --------------------------------------------------------
+SB
+-------------------------------------------------------- */
+
+TEST(execute_sb, PositiveOffset) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x1, 0x100);
+	hart.set_register(Rv32_register_id::x2, 0x50);
+	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(0x10));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x100);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x50);
+	EXPECT_EQ(memory.read_byte(0x110), 0x50);
+}
+
+TEST(execute_sb, PositiveOffsetWrapAround) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x1, 0xFFFFFFFC);
+	hart.set_register(Rv32_register_id::x2, 0x50);
+	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(8));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0xFFFFFFFC);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x50);
+	EXPECT_EQ(memory.read_byte(4), 0x50);
+}
+
+TEST(execute_sb, NegativeOffset) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x1, 64);
+	hart.set_register(Rv32_register_id::x2, 0x50);
+	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(-32));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 64);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x50);
+	EXPECT_EQ(memory.read_byte(32), 0x50);
+}
+
+TEST(execute_sb, NegativeOffsetWrapAround) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x1, 4);
+	hart.set_register(Rv32_register_id::x2, 0x50);
+	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(-8));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x50);
+	EXPECT_EQ(memory.read_byte(0xFFFFFFFC), 0x50);
+}
+
+TEST(execute_sb, ZeroOffset) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x1, 6);
+	hart.set_register(Rv32_register_id::x2, 0x50);
+	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(0));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 6);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x50);
+	EXPECT_EQ(memory.read_byte(6), 0x50);
+}
+
+TEST(execute_sb, MisalignedAccess) {
+
+	// Address 5 is not on a 4 or 2 byte boundary, but that is allowed
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x1, 4);
+	hart.set_register(Rv32_register_id::x2, 0x50);
+	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(1));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x50);
+	EXPECT_EQ(memory.read_byte(5), 0x50);
+}
+
+TEST(execute_sb, HighBitsOfRegisterIgnored) {
+
+	// Only the low 8 bits of the source register are stored
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::x1, 4);
+	hart.set_register(Rv32_register_id::x2, -1 << 7);
+	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(0));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), -1 << 7);
+	EXPECT_EQ(memory.read_byte(4), 0b1000'0000);
 }
 
 /* --------------------------------------------------------
