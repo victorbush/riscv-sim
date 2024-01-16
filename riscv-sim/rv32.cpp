@@ -814,8 +814,9 @@ Rv_jtype_imm Rv_jtype_imm::from_instruction(uint32_t instruction)
 	const auto decoded_bits_20 = (instruction >> 11) & (1 << 20);
 	int32_t offset = decoded_bits_1to10 | decoded_bits_11 | decoded_bits_12to19 | decoded_bits_20;
 
-	// Ensure sign extended
-	// TODO
+	// Sign extend
+	if (decoded_bits_20)
+		offset |= 0b1111'1111'1111'0000'0000'0000'0000'0000;
 
 	// Get the encoded bits and clear the rest of the instruction bits
 	uint32_t encoded = instruction & 0b1111'1111'1111'1111'1111'0000'0000'0000;
@@ -825,7 +826,21 @@ Rv_jtype_imm Rv_jtype_imm::from_instruction(uint32_t instruction)
 
 Rv_jtype_imm Rv_jtype_imm::from_offset(int32_t offset)
 {
-	throw exception("Not implemented.");
+	// Offsets must be multiples of 2
+	if (offset & 1)
+		throw exception("J-type offsets must be multiples of 2.");
+
+	// Offsets must fall in the range [-1048576, 1048574]
+	if (offset < -1048576 || offset > 1048574)
+		throw exception("J-type offsets must fall in the range [-1048576, 1048574].");
+
+	const auto encoded_bits_12to19 = (offset & 0b0000'0000'0000'1111'1111'0000'0000'0000);
+	const auto encoded_bits_20 = (offset & (1 << 11)) << 9;
+	const auto encoded_bits_21to30 = (offset & 0b0111'1111'1110) << 20;
+	const auto encoded_bits_31 = (offset & (1 << 20)) << 11;
+	uint32_t encoded = encoded_bits_12to19 | encoded_bits_20 | encoded_bits_21to30 | encoded_bits_31;
+
+	return Rv_jtype_imm(offset, encoded);
 }
 
 Rv_jtype_imm::Rv_jtype_imm(int32_t offset, uint32_t encoded)

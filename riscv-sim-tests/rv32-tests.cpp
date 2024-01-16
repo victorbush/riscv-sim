@@ -204,30 +204,30 @@ Rv_btype_imm
 
 ======================================================== */
 
+// List of test bit pairs.
+// (encoded instruction bit index, decoded offset bit index)
+const array<pair<uint8_t, uint8_t>, 12> btype_test_bits = {
+	make_pair(7, 11),
+	make_pair(8, 1),
+	make_pair(9, 2),
+	make_pair(10, 3),
+	make_pair(11, 4),
+	make_pair(25, 5),
+	make_pair(26, 6),
+	make_pair(27, 7),
+	make_pair(28, 8),
+	make_pair(29, 9),
+	make_pair(30, 10),
+	make_pair(31, 12),
+};
+
 TEST(Rv_btype_imm, get_offset) {
 
-	// List of test bit pairs.
-	// (instruction bit index, expected offset bit index)
-	//
 	// The instruction bit index is set.
 	// Then the B-type immediate is created.
 	// Then the offset is verified to see if the expected offset bit is set.
-	array<pair<uint8_t, uint8_t>, 12> test_bits = {
-		make_pair(7, 11),
-		make_pair(8, 1),
-		make_pair(9, 2),
-		make_pair(10, 3),
-		make_pair(11, 4),
-		make_pair(25, 5),
-		make_pair(26, 6),
-		make_pair(27, 7),
-		make_pair(28, 8),
-		make_pair(29, 9),
-		make_pair(30, 10),
-		make_pair(31, 12),
-	};
 
-	for (const auto& pair : test_bits) {
+	for (const auto& pair : btype_test_bits) {
 		uint32_t instruction = 1 << pair.first;
 		auto imm = Rv_btype_imm::from_instruction(instruction);
 		
@@ -241,28 +241,11 @@ TEST(Rv_btype_imm, get_offset) {
 
 TEST(Rv_btype_imm, get_encoded) {
 
-	// List of test bit pairs.
-	// (expected instruction bit index, offset bit index)
-	//
 	// The offset bit index is set.
 	// Then the B-type immediate is created.
 	// Then the encoded instruction is verified to see if the expected bit is set.
-	array<pair<uint8_t, uint8_t>, 12> test_bits = {
-		make_pair(7, 11),
-		make_pair(8, 1),
-		make_pair(9, 2),
-		make_pair(10, 3),
-		make_pair(11, 4),
-		make_pair(25, 5),
-		make_pair(26, 6),
-		make_pair(27, 7),
-		make_pair(28, 8),
-		make_pair(29, 9),
-		make_pair(30, 10),
-		make_pair(31, 12),
-	};
 
-	for (const auto& pair : test_bits) {
+	for (const auto& pair : btype_test_bits) {
 		int32_t offset = 1 << pair.second;
 
 		// If the last bit is set, expect sign extend
@@ -371,6 +354,101 @@ TEST(Rv_itype_imm, from_unsigned_AtMinValue) {
 TEST(Rv_itype_imm, from_unsigned__AboveMaxValue) {
 
 	EXPECT_THROW_EX(Rv_itype_imm::from_unsigned(4096), "Unsigned I-immediates must fall in the range [0, 4095].");
+}
+
+/* ========================================================
+
+Rv_jtype_imm
+
+======================================================== */
+
+// List of test bit pairs.
+// (encoded instruction bit index, decoded offset bit index)
+const array<pair<uint8_t, uint8_t>, 20> jtype_test_bits = {
+	make_pair(12, 12),
+	make_pair(13, 13),
+	make_pair(14, 14),
+	make_pair(15, 15),
+	make_pair(16, 16),
+	make_pair(17, 17),
+	make_pair(18, 18),
+	make_pair(19, 19),
+	make_pair(20, 11),
+	make_pair(21, 1),
+	make_pair(22, 2),
+	make_pair(23, 3),
+	make_pair(24, 4),
+	make_pair(25, 5),
+	make_pair(26, 6),
+	make_pair(27, 7),
+	make_pair(28, 8),
+	make_pair(29, 9),
+	make_pair(30, 10),
+	make_pair(31, 20),
+};
+
+TEST(Rv_jtype_imm, get_offset) {
+
+	// The instruction bit index is set.
+	// Then the J-type immediate is created.
+	// Then the offset is verified to see if the expected offset bit is set.
+
+	for (const auto& pair : jtype_test_bits) {
+		uint32_t instruction = 1 << pair.first;
+		auto imm = Rv_jtype_imm::from_instruction(instruction);
+
+		// If the last bit is set, expect sign extend
+		if (pair.second == 20)
+			EXPECT_EQ(0b1111'1111'1111'0000'0000'0000'0000'0000, imm.get_offset());
+		else
+			EXPECT_EQ(1 << pair.second, imm.get_offset());
+	}
+}
+
+TEST(Rv_jtype_imm, get_encoded) {
+
+	// The offset bit index is set.
+	// Then the J-type immediate is created.
+	// Then the encoded instruction is verified to see if the expected bit is set.
+
+	for (const auto& pair : jtype_test_bits) {
+		int32_t offset = 1 << pair.second;
+
+		// If the last bit is set, expect sign extend
+		if (pair.second == 20)
+			offset |= 0b1111'1111'1111'0000'0000'0000'0000'0000;
+
+		auto imm = Rv_jtype_imm::from_offset(offset);
+		EXPECT_EQ(1 << pair.first, imm.get_encoded());
+	}
+}
+
+TEST(Rv_jtype_imm, NotAMultipleOf2) {
+
+	// Offsets are only multiples of 2
+	EXPECT_THROW_EX(Rv_jtype_imm::from_offset(-3), "J-type offsets must be multiples of 2.");
+}
+
+TEST(Rv_jtype_imm, AtMinValue) {
+
+	auto imm = Rv_jtype_imm::from_offset(-1048576);
+	EXPECT_EQ(imm.get_offset(), -1048576);
+}
+
+TEST(Rv_jtype_imm, BelowMinValue) {
+
+	EXPECT_THROW_EX(Rv_jtype_imm::from_offset(-1048578), "J-type offsets must fall in the range [-1048576, 1048574].");
+}
+
+TEST(Rv_jtype_imm, AtMaxValue) {
+
+	auto imm = Rv_jtype_imm::from_offset(1048574);
+	EXPECT_EQ(imm.get_offset(), 1048574);
+}
+
+TEST(Rv_jtype_imm, AboveMaxValue) {
+
+	EXPECT_THROW_EX(Rv_jtype_imm::from_offset(1048576), "J-type offsets must fall in the range [-1048576, 1048574].");
 }
 
 /* ========================================================
