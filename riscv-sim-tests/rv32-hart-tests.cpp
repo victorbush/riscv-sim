@@ -222,6 +222,23 @@ TEST(execute_next, JAL) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x504);
 }
 
+TEST(execute_next, JALR) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_jalr(Rv32_register_id::x1, Rv32_register_id::x2, Rv_itype_imm::from_signed(0x20));
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.set_register(Rv32_register_id::x2, 0x600);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x620);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x504);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x600);
+}
+
 TEST(execute_next, LB) {
 
 	auto memory = Simple_memory_subsystem();
@@ -1410,6 +1427,92 @@ TEST(execute_jal, TargetAddressMisaligned) {
 	
 	hart.set_register(Rv32_register_id::pc, 0x43);
 	EXPECT_THROW_EX(hart.execute_jal(Rv32_register_id::x1, Rv_jtype_imm::from_offset(0)), expected_message);
+}
+
+/* --------------------------------------------------------
+JALR
+-------------------------------------------------------- */
+
+TEST(execute_jalr, PositiveOffset) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 0x40);
+	hart.set_register(Rv32_register_id::x2, 0x80);
+	hart.execute_jalr(Rv32_register_id::x1, Rv32_register_id::x2, Rv_itype_imm::from_signed(0x10));
+
+	// PC is set to RS1 + Offset
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x90);
+
+	// RD is set to instruction after the jump instruction (PC + 4)
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x44);
+}
+
+TEST(execute_jalr, PositiveOffsetWrapAround) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 0x40);
+	hart.set_register(Rv32_register_id::x2, 0xFFFFFF00);
+	hart.execute_jalr(Rv32_register_id::x1, Rv32_register_id::x2, Rv_itype_imm::from_signed(0x104));
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x44);
+}
+
+TEST(execute_jalr, NegativeOffset) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 0x40);
+	hart.set_register(Rv32_register_id::x2, 0x80);
+	hart.execute_jalr(Rv32_register_id::x1, Rv32_register_id::x2, Rv_itype_imm::from_signed(-0x10));
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x70);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x44);
+}
+
+TEST(execute_jalr, NegativeOffsetWrapAround) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 0x40);
+	hart.set_register(Rv32_register_id::x2, 0x4);
+	hart.execute_jalr(Rv32_register_id::x1, Rv32_register_id::x2, Rv_itype_imm::from_signed(-0x104));
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0xFFFFFF00);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x44);
+}
+
+TEST(execute_jalr, LeastSigBitSetToZero) {
+
+	// After computing the target address, the least significant bit of the target address
+	// is set to zero.
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 0x40);
+	hart.set_register(Rv32_register_id::x2, 0x4);
+	hart.execute_jalr(Rv32_register_id::x1, Rv32_register_id::x2, Rv_itype_imm::from_signed(1));
+
+	// 4 + 1 = 5 == 0b101
+	// Set LSB to 0 and you get 0b100
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x44);
+}
+
+TEST(execute_jalr, TargetAddressMisaligned) {
+
+	// Since JALR sets LSB to 0 of target address, the only case
+	// that can trigger this is on a two byte boundary that isn't
+	// also a four byte boundary.
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	const auto expected_message = "instruction-address-misaligned";
+	hart.set_register(Rv32_register_id::x2, 0x52);
+	EXPECT_THROW_EX(hart.execute_jalr(Rv32_register_id::x1, Rv32_register_id::x2, Rv_itype_imm::from_signed(0)), expected_message);
 }
 
 /* --------------------------------------------------------

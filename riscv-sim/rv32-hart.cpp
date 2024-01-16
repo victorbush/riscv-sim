@@ -365,7 +365,24 @@ void Rv32_hart::execute_jal(Rv32_register_id rd, Rv_jtype_imm imm)
 
 void Rv32_hart::execute_jalr(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
 {
-	throw exception("Not implemented.");
+	// Target address is obtained by adding the sign-extended 12-bit I-immediate to rs1,
+	// then setting the least-significant bit of the result to zero.
+	
+	const auto pc = get_register(Rv32_register_id::pc);
+	const uint32_t rs1_val = get_register(rs1);
+	const int32_t offset = imm.get_signed();
+	uint32_t new_pc = rs1_val + offset;
+
+	// Set least-significant bit to zero
+	new_pc &= static_cast<uint32_t>(~1);
+
+	// Target must be 4-byte aligned
+	throw_if_branch_target_misaligned(new_pc);
+
+	set_register(Rv32_register_id::pc, new_pc);
+
+	// RD is set to instruction after the jump instruction (PC + 4)
+	set_register(rd, pc + 4);
 }
 
 void Rv32_hart::execute_lb(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
