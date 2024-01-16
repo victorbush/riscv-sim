@@ -11,6 +11,9 @@ The conditional branch instructions will generate an instruction-address-misalig
 target address is not aligned to a four-byte boundary and the branch condition evaluates to true.
 If the branch condition evaluates to false, the instruction-address-misaligned exception will not be
 raised.
+
+Unconditional branch instructions will generate an instruction-address-misaligned exception if the
+target address is not aligned to a four-byte boundary.
 */
 #define throw_if_branch_target_misaligned(address) \
 if (( address ) % 4 != 0) \
@@ -89,7 +92,7 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 
 	// J-type
 
-
+	{ Rv32i_instruction_type::jal, &Rv32_hart::execute_jal },
 
 	// R-type
 
@@ -114,7 +117,6 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 
 	{ Rv32i_instruction_type::auipc, &Rv32_hart::execute_auipc },
 	{ Rv32i_instruction_type::lui, &Rv32_hart::execute_lui },
-
 };
 
 void Rv32_hart::execute_next()
@@ -152,7 +154,10 @@ void Rv32_hart::execute_next()
 	
 	case Rv32_instruction_format::jtype:
 	{
-		throw exception("Not implemented.");
+		auto jtype = Rv32i_decoder::decode_jtype(next_inst);
+		(*this.*(executor.execute_jtype))(jtype.rd, jtype.imm);
+		auto_inc_pc = false;
+		break;
 	}
 
 	case Rv32_instruction_format::rtype:
@@ -343,7 +348,17 @@ void Rv32_hart::execute_bne(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype
 
 void Rv32_hart::execute_jal(Rv32_register_id rd, Rv_jtype_imm imm)
 {
-	throw exception("Not implemented.");
+	const auto pc = get_register(Rv32_register_id::pc);
+	uint32_t new_pc = pc + imm.get_offset();
+	
+	// Target must be 4-byte aligned
+	throw_if_branch_target_misaligned(new_pc);
+
+	// PC is set to the jump target (PC + Offset)
+	set_register(Rv32_register_id::pc, new_pc);
+
+	// RD is set to instruction after the jump instruction (PC + 4)
+	set_register(rd, pc + 4);
 }
 
 void Rv32_hart::execute_lb(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)

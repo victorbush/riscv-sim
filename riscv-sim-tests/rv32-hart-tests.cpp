@@ -207,6 +207,21 @@ TEST(execute_next, BNE) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x510);
 }
 
+TEST(execute_next, JAL) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_jal(Rv32_register_id::x1, Rv_jtype_imm::from_offset(0x20));
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x520);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x504);
+}
+
 TEST(execute_next, LB) {
 
 	auto memory = Simple_memory_subsystem();
@@ -1319,6 +1334,82 @@ TEST(execute_bne, AddressMisalignedButBranchNotTaken) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 404); // PC just gets advanced to next instruction
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 4);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 4);
+}
+
+/* --------------------------------------------------------
+JAL
+-------------------------------------------------------- */
+
+TEST(execute_jal, PositiveOffset) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 0x40);
+	hart.execute_jal(Rv32_register_id::x1, Rv_jtype_imm::from_offset(0x20));
+	
+	// PC is set to the jump target (PC + Offset)
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x60);
+
+	// RD is set to instruction after the jump instruction (PC + 4)
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x44);
+}
+
+TEST(execute_jal, PositiveOffsetWrapAround) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 0xFFFFFFFC);
+	hart.execute_jal(Rv32_register_id::x1, Rv_jtype_imm::from_offset(8));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 4);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0);
+}
+
+TEST(execute_jal, NegativeOffset) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 0x40);
+	hart.execute_jal(Rv32_register_id::x1, Rv_jtype_imm::from_offset(-0x20));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x20);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x44);
+}
+
+TEST(execute_jal, NegativeOffsetWrapAround) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 0x40);
+	hart.execute_jal(Rv32_register_id::x1, Rv_jtype_imm::from_offset(-0x60));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), -0x20);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x44);
+}
+
+TEST(execute_jal, NoOffset) {
+
+	// This would result in an infinite loop, but I don't see anything that technically prohibits this
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	hart.set_register(Rv32_register_id::pc, 0x40);
+	hart.execute_jal(Rv32_register_id::x1, Rv_jtype_imm::from_offset(0));
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x40);
+	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x44);
+}
+
+TEST(execute_jal, TargetAddressMisaligned) {
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+	const auto expected_message = "instruction-address-misaligned";
+	
+	hart.set_register(Rv32_register_id::pc, 0x41);
+	EXPECT_THROW_EX(hart.execute_jal(Rv32_register_id::x1, Rv_jtype_imm::from_offset(0)), expected_message);
+
+	hart.set_register(Rv32_register_id::pc, 0x42);
+	EXPECT_THROW_EX(hart.execute_jal(Rv32_register_id::x1, Rv_jtype_imm::from_offset(0)), expected_message);
+	
+	hart.set_register(Rv32_register_id::pc, 0x43);
+	EXPECT_THROW_EX(hart.execute_jal(Rv32_register_id::x1, Rv_jtype_imm::from_offset(0)), expected_message);
 }
 
 /* --------------------------------------------------------

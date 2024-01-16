@@ -422,7 +422,7 @@ public:
 	static Rv32i_instruction_type decode_rv32i_instruction_type(uint32_t instruction);
 	static Rv32i_itype_instruction decode_rv32i_itype(uint32_t instruction);
 	static Rv_btype_instruction decode_btype(uint32_t instruction);
-	static Rv_btype_instruction decode_jtype(uint32_t instruction);
+	static Rv_jtype_instruction decode_jtype(uint32_t instruction);
 	static Rv_rtype_instruction decode_rtype(uint32_t instruction);
 	static Rv_stype_instruction decode_stype(uint32_t instruction);
 	static Rv_utype_instruction decode_utype(uint32_t instruction);
