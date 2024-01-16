@@ -341,6 +341,11 @@ void Rv32_hart::execute_bne(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype
 	set_register(Rv32_register_id::pc, pc);
 }
 
+void Rv32_hart::execute_jal(Rv32_register_id rd, Rv_jtype_imm imm)
+{
+	throw exception("Not implemented.");
+}
+
 void Rv32_hart::execute_lb(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
 {
 	uint32_t rs1_val = get_register(rs1);

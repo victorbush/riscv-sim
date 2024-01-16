@@ -119,8 +119,10 @@ a single instruction type or a pointer to a function that will pick the correct 
 */
 const map<uint32_t, Signature_match> instruction_signature_map2 = {
 	
-	{ create_utype_signature(Rv32i_opcode::lui), Rv32i_instruction_type::lui },
 	{ create_utype_signature(Rv32i_opcode::auipc), Rv32i_instruction_type::auipc },
+	{ create_utype_signature(Rv32i_opcode::lui), Rv32i_instruction_type::lui },
+
+	{ create_jtype_signature(Rv32i_opcode::jal), Rv32i_instruction_type::jal },
 
 	{ create_branch_signature(Rv32_branch_funct3::beq), Rv32i_instruction_type::beq },
 	{ create_branch_signature(Rv32_branch_funct3::bge), Rv32i_instruction_type::bge },
@@ -247,7 +249,7 @@ signature = instruction & mask
 const auto rv32_opcode_mask_map = map<uint8_t, uint32_t>() = {
 	{ to_underlying(Rv32i_opcode::auipc), rv32i_utype_mask },
 	{ to_underlying(Rv32i_opcode::branch), rv32i_btype_mask },
-	//{ to_underlying(Rv32i_opcode::jal), rv32i_jtype_mask },
+	{ to_underlying(Rv32i_opcode::jal), rv32i_jtype_mask },
 	//{ to_underlying(Rv32i_opcode::jalr), rv32i_itype_mask },
 	{ to_underlying(Rv32i_opcode::load), rv32i_itype_mask },
 	{ to_underlying(Rv32i_opcode::lui), rv32i_utype_mask },
@@ -324,6 +326,11 @@ Rv_btype_instruction Rv32i_decoder::decode_btype(uint32_t instruction)
 	const auto rs1 = get_rv32_register_id(rs1_raw);
 
 	return Rv_btype_instruction(opcode, funct3, rs1, rs2, imm);
+}
+
+Rv_btype_instruction Rv32i_decoder::decode_jtype(uint32_t instruction)
+{
+	throw exception("Not implemented.");
 }
 
 Rv_rtype_instruction Rv32i_decoder::decode_rtype(uint32_t instruction)
@@ -788,6 +795,52 @@ uint32_t Rv_itype_imm::get_unsigned() const
 uint8_t Rv_itype_imm::get_shift_amount() const
 {
 	return static_cast<uint8_t>(0b11111 & _immediate);
+}
+
+/* ========================================================
+
+Rv_jtype_imm
+
+======================================================== */
+
+//   31    | 30         21 |   20    | 19          12 | 11    7 | 6      0
+// imm[20]     imm[10:1]     imm[11]     imm[19:12]        rd      opcode
+
+Rv_jtype_imm Rv_jtype_imm::from_instruction(uint32_t instruction)
+{
+	const auto decoded_bits_1to10 = (instruction >> 20) & 0b0111'1111'1110;
+	const auto decoded_bits_11 = (instruction >> 9) & (1 << 11);
+	const auto decoded_bits_12to19 = instruction & 0b0000'0000'0000'1111'1111'0000'0000'0000;
+	const auto decoded_bits_20 = (instruction >> 11) & (1 << 20);
+	int32_t offset = decoded_bits_1to10 | decoded_bits_11 | decoded_bits_12to19 | decoded_bits_20;
+
+	// Ensure sign extended
+	// TODO
+
+	// Get the encoded bits and clear the rest of the instruction bits
+	uint32_t encoded = instruction & 0b1111'1111'1111'1111'1111'0000'0000'0000;
+
+	return Rv_jtype_imm(offset, encoded);
+}
+
+Rv_jtype_imm Rv_jtype_imm::from_offset(int32_t offset)
+{
+	throw exception("Not implemented.");
+}
+
+Rv_jtype_imm::Rv_jtype_imm(int32_t offset, uint32_t encoded)
+	: _offset(offset), _encoded(encoded)
+{
+}
+
+uint32_t Rv_jtype_imm::get_encoded() const
+{
+	return _encoded;
+}
+
+int32_t Rv_jtype_imm::get_offset() const
+{
+	return _offset;
 }
 
 /* ========================================================

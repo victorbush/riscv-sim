@@ -13,7 +13,7 @@ struct Rv_btype_imm
 	/** Creates a B-type immediate from a decoded branch offset value. Throws an exception if offset is not a multiple of 2 or does not fall within the allowed B-immediate range. */
 	static Rv_btype_imm from_offset(int32_t offset);
 
-	/** Encodes immediate into an empty 32-bit instruction. */
+	/** Gets the immediate properly encoded in an empty 32-bit instruction. */
 	uint32_t get_encoded() const;
 
 	/** Gets the branch offset. The 12-bit immediate is sign extended. */
@@ -59,7 +59,23 @@ private:
 /** 20-bit immediate value used by J-type instructions. */
 struct Rv_jtype_imm
 {
-	Rv_jtype_imm(uint32_t encoded);
+	/** Extracts a J-type immediate from a J-type instruction. */
+	static Rv_jtype_imm from_instruction(uint32_t instruction);
+
+	/** Creates a J-type immediate from a decoded offset value. Throws an exception if offset is not a multiple of 2 or does not fall within the allowed J-immediate range. */
+	static Rv_jtype_imm from_offset(int32_t offset);
+
+	/** Gets the immediate properly encoded in an empty 32-bit instruction. */
+	uint32_t get_encoded() const;
+
+	/** Gets the jump offset. The 20-bit immediate is sign extended. */
+	int32_t get_offset() const;
+
+private:
+	Rv_jtype_imm(int32_t offset, uint32_t encoded);
+
+	uint32_t _encoded;  // Immediate value encoded into a 32-bit instruction
+	int32_t _offset;    // Decoded and sign-extended jump offset
 };
 
 /** 12-bit immediate value used by S-type instructions. */
@@ -320,6 +336,13 @@ struct Rv_btype_instruction
 	Rv_btype_imm imm;
 };
 
+struct Rv_jtype_instruction
+{
+	Rv32i_opcode opcode;
+	Rv32_register_id rd;
+	Rv_jtype_imm imm;
+};
+
 struct Rv_rtype_instruction
 {
 	Rv32i_opcode opcode;
@@ -399,6 +422,7 @@ public:
 	static Rv32i_instruction_type decode_rv32i_instruction_type(uint32_t instruction);
 	static Rv32i_itype_instruction decode_rv32i_itype(uint32_t instruction);
 	static Rv_btype_instruction decode_btype(uint32_t instruction);
+	static Rv_btype_instruction decode_jtype(uint32_t instruction);
 	static Rv_rtype_instruction decode_rtype(uint32_t instruction);
 	static Rv_stype_instruction decode_stype(uint32_t instruction);
 	static Rv_utype_instruction decode_utype(uint32_t instruction);
@@ -410,6 +434,7 @@ class Rv32_encoder
 {
 public:
 	static uint32_t encode_btype(Rv32i_opcode opcode, Rv32_branch_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm);
+	static uint32_t encode_jal(Rv32_register_id rd, Rv_jtype_imm imm);
 	static uint32_t encode_load(Rv32_load_funct3 funct3, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
 	static uint32_t encode_op(Rv32_op_funct3 funct3, Rv32_op_funct7 funct7, Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	static uint32_t encode_op_imm(Rv32_op_imm_funct funct, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
