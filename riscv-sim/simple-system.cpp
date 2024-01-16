@@ -69,6 +69,12 @@ void Simple_memory_subsystem::write_byte(uint32_t address, uint8_t value)
 	memory[address] = value;
 }
 
+void Simple_memory_subsystem::write_16(uint32_t address, uint16_t value)
+{
+	memory[address] = 0xFF & value;
+	memory[address + 1] = 0xFF & (value >> 8);
+}
+
 void Simple_memory_subsystem::write_32(uint32_t address, uint32_t value)
 {
 	memory[address] = 0xFF & value;

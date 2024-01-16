@@ -432,7 +432,14 @@ void Rv32_hart::execute_sb(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_
 
 void Rv32_hart::execute_sh(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm)
 {
-	throw exception("Not implemented.");
+	uint32_t rs1_val = get_register(rs1);
+	uint32_t rs2_val = get_register(rs2);
+
+	int32_t offset = imm.get_offset();
+	uint32_t address = rs1_val + offset;
+	uint16_t val_to_write = static_cast<uint16_t>(rs2_val) & 0xFFFF;
+
+	memory.write_16(address, val_to_write);
 }
 
 void Rv32_hart::execute_sll(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
