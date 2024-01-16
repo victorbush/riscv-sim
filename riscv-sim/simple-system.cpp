@@ -64,7 +64,7 @@ void Simple_system::load_program(std::span<uint32_t> instructions)
 Simple memory subsystem
 ======================================================== */
 
-void Simple_memory_subsystem::write_byte(uint32_t address, uint8_t value)
+void Simple_memory_subsystem::write_8(uint32_t address, uint8_t value)
 {
 	memory[address] = value;
 }
@@ -83,7 +83,7 @@ void Simple_memory_subsystem::write_32(uint32_t address, uint32_t value)
 	memory[address + 3] = 0xFF & (value >> 24);
 }
 
-uint8_t Simple_memory_subsystem::read_byte(uint32_t address) const
+uint8_t Simple_memory_subsystem::read_8(uint32_t address) const
 {
 	return memory.at(address);
 }

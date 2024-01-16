@@ -214,7 +214,7 @@ TEST(execute_next, LB) {
 
 	auto instruction = Rv32_encoder::encode_lb(Rv32_register_id::x2, Rv32_register_id::x3, 0);
 	memory.write_32(0x500, instruction);
-	memory.write_byte(0x600, 0x20);
+	memory.write_8(0x600, 0x20);
 
 	hart.set_register(Rv32_register_id::pc, 0x500);
 	hart.set_register(Rv32_register_id::x3, 0x600);
@@ -230,7 +230,7 @@ TEST(execute_next, LBU) {
 
 	auto instruction = Rv32_encoder::encode_lb(Rv32_register_id::x2, Rv32_register_id::x3, 0);
 	memory.write_32(0x500, instruction);
-	memory.write_byte(0x600, 0x20);
+	memory.write_8(0x600, 0x20);
 
 	hart.set_register(Rv32_register_id::pc, 0x500);
 	hart.set_register(Rv32_register_id::x3, 0x600);
@@ -246,8 +246,8 @@ TEST(execute_next, LH) {
 
 	auto instruction = Rv32_encoder::encode_lh(Rv32_register_id::x2, Rv32_register_id::x3, 0);
 	memory.write_32(0x500, instruction);
-	memory.write_byte(0x600, 0x20);
-	memory.write_byte(0x601, 0x30);
+	memory.write_8(0x600, 0x20);
+	memory.write_8(0x601, 0x30);
 
 	hart.set_register(Rv32_register_id::pc, 0x500);
 	hart.set_register(Rv32_register_id::x3, 0x600);
@@ -263,8 +263,8 @@ TEST(execute_next, LHU) {
 
 	auto instruction = Rv32_encoder::encode_lhu(Rv32_register_id::x2, Rv32_register_id::x3, 0);
 	memory.write_32(0x500, instruction);
-	memory.write_byte(0x600, 0x20);
-	memory.write_byte(0x601, 0x30);
+	memory.write_8(0x600, 0x20);
+	memory.write_8(0x601, 0x30);
 
 	hart.set_register(Rv32_register_id::pc, 0x500);
 	hart.set_register(Rv32_register_id::x3, 0x600);
@@ -373,7 +373,7 @@ TEST(execute_next, SB) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x600);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x3), 0x30);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
-	EXPECT_EQ(memory.read_byte(0x610), 0x30);
+	EXPECT_EQ(memory.read_8(0x610), 0x30);
 }
 
 TEST(execute_next, SH) {
@@ -1309,10 +1309,10 @@ LB
 TEST(execute_lb, PositiveOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(96, 1);
-	memory.write_byte(97, 2);
-	memory.write_byte(98, 3);
-	memory.write_byte(99, 4);
+	memory.write_8(96, 1);
+	memory.write_8(97, 2);
+	memory.write_8(98, 3);
+	memory.write_8(99, 4);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 64);
@@ -1324,10 +1324,10 @@ TEST(execute_lb, PositiveOffset) {
 TEST(execute_lb, PositiveOffsetWrapAround) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 10);
-	memory.write_byte(5, 20);
-	memory.write_byte(6, 30);
-	memory.write_byte(7, 40);
+	memory.write_8(4, 10);
+	memory.write_8(5, 20);
+	memory.write_8(6, 30);
+	memory.write_8(7, 40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 0xFFFFFFFC);
@@ -1339,10 +1339,10 @@ TEST(execute_lb, PositiveOffsetWrapAround) {
 TEST(execute_lb, NegativeOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(32, 10);
-	memory.write_byte(33, 20);
-	memory.write_byte(34, 30);
-	memory.write_byte(35, 40);
+	memory.write_8(32, 10);
+	memory.write_8(33, 20);
+	memory.write_8(34, 30);
+	memory.write_8(35, 40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 64);
@@ -1354,10 +1354,10 @@ TEST(execute_lb, NegativeOffset) {
 TEST(execute_lb, NegativeOffsetWrapAround) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(0xFFFFFFFC, 10);
-	memory.write_byte(0xFFFFFFFD, 20);
-	memory.write_byte(0xFFFFFFFE, 30);
-	memory.write_byte(0xFFFFFFFF, 40);
+	memory.write_8(0xFFFFFFFC, 10);
+	memory.write_8(0xFFFFFFFD, 20);
+	memory.write_8(0xFFFFFFFE, 30);
+	memory.write_8(0xFFFFFFFF, 40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1369,10 +1369,10 @@ TEST(execute_lb, NegativeOffsetWrapAround) {
 TEST(execute_lb, ZeroOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 10);
-	memory.write_byte(5, 20);
-	memory.write_byte(6, 30);
-	memory.write_byte(7, 40);
+	memory.write_8(4, 10);
+	memory.write_8(5, 20);
+	memory.write_8(6, 30);
+	memory.write_8(7, 40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 6);
@@ -1386,10 +1386,10 @@ TEST(execute_lb, MisalignedAccess) {
 	// Address 5 is not on a 4 or 2 byte boundary, but that is allowed
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 10);
-	memory.write_byte(5, 20);
-	memory.write_byte(6, 30);
-	memory.write_byte(7, 40);
+	memory.write_8(4, 10);
+	memory.write_8(5, 20);
+	memory.write_8(6, 30);
+	memory.write_8(7, 40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1403,7 +1403,7 @@ TEST(execute_lb, SignExtended) {
 	// Ensures the result is signed extended
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 0b1000'0000);
+	memory.write_8(4, 0b1000'0000);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1418,10 +1418,10 @@ LBU
 TEST(execute_lbu, PositiveOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(96, 1);
-	memory.write_byte(97, 2);
-	memory.write_byte(98, 3);
-	memory.write_byte(99, 4);
+	memory.write_8(96, 1);
+	memory.write_8(97, 2);
+	memory.write_8(98, 3);
+	memory.write_8(99, 4);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 64);
@@ -1433,10 +1433,10 @@ TEST(execute_lbu, PositiveOffset) {
 TEST(execute_lbu, PositiveOffsetWrapAround) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 10);
-	memory.write_byte(5, 20);
-	memory.write_byte(6, 30);
-	memory.write_byte(7, 40);
+	memory.write_8(4, 10);
+	memory.write_8(5, 20);
+	memory.write_8(6, 30);
+	memory.write_8(7, 40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 0xFFFFFFFC);
@@ -1448,10 +1448,10 @@ TEST(execute_lbu, PositiveOffsetWrapAround) {
 TEST(execute_lbu, NegativeOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(32, 10);
-	memory.write_byte(33, 20);
-	memory.write_byte(34, 30);
-	memory.write_byte(35, 40);
+	memory.write_8(32, 10);
+	memory.write_8(33, 20);
+	memory.write_8(34, 30);
+	memory.write_8(35, 40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 64);
@@ -1463,10 +1463,10 @@ TEST(execute_lbu, NegativeOffset) {
 TEST(execute_lbu, NegativeOffsetWrapAround) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(0xFFFFFFFC, 10);
-	memory.write_byte(0xFFFFFFFD, 20);
-	memory.write_byte(0xFFFFFFFE, 30);
-	memory.write_byte(0xFFFFFFFF, 40);
+	memory.write_8(0xFFFFFFFC, 10);
+	memory.write_8(0xFFFFFFFD, 20);
+	memory.write_8(0xFFFFFFFE, 30);
+	memory.write_8(0xFFFFFFFF, 40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1478,10 +1478,10 @@ TEST(execute_lbu, NegativeOffsetWrapAround) {
 TEST(execute_lbu, ZeroOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 10);
-	memory.write_byte(5, 20);
-	memory.write_byte(6, 30);
-	memory.write_byte(7, 40);
+	memory.write_8(4, 10);
+	memory.write_8(5, 20);
+	memory.write_8(6, 30);
+	memory.write_8(7, 40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 6);
@@ -1495,10 +1495,10 @@ TEST(execute_lbu, MisalignedAccess) {
 	// Address 5 is not on a 4 or 2 byte boundary, but that is allowed
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 10);
-	memory.write_byte(5, 20);
-	memory.write_byte(6, 30);
-	memory.write_byte(7, 40);
+	memory.write_8(4, 10);
+	memory.write_8(5, 20);
+	memory.write_8(6, 30);
+	memory.write_8(7, 40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1512,7 +1512,7 @@ TEST(execute_lbu, NotSignExtended) {
 	// Ensures the result is NOT signed extended
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 0b1000'0000);
+	memory.write_8(4, 0b1000'0000);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1527,10 +1527,10 @@ LH
 TEST(execute_lh, PositiveOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(96, 0x10);
-	memory.write_byte(97, 0x20);
-	memory.write_byte(98, 0x30);
-	memory.write_byte(99, 0x40);
+	memory.write_8(96, 0x10);
+	memory.write_8(97, 0x20);
+	memory.write_8(98, 0x30);
+	memory.write_8(99, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 64);
@@ -1542,10 +1542,10 @@ TEST(execute_lh, PositiveOffset) {
 TEST(execute_lh, PositiveOffsetWrapAround) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 0x10);
-	memory.write_byte(5, 0x20);
-	memory.write_byte(6, 0x30);
-	memory.write_byte(7, 0x40);
+	memory.write_8(4, 0x10);
+	memory.write_8(5, 0x20);
+	memory.write_8(6, 0x30);
+	memory.write_8(7, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 0xFFFFFFFC);
@@ -1557,10 +1557,10 @@ TEST(execute_lh, PositiveOffsetWrapAround) {
 TEST(execute_lh, NegativeOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(32, 0x10);
-	memory.write_byte(33, 0x20);
-	memory.write_byte(34, 0x30);
-	memory.write_byte(35, 0x40);
+	memory.write_8(32, 0x10);
+	memory.write_8(33, 0x20);
+	memory.write_8(34, 0x30);
+	memory.write_8(35, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 64);
@@ -1572,10 +1572,10 @@ TEST(execute_lh, NegativeOffset) {
 TEST(execute_lh, NegativeOffsetWrapAround) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(0xFFFFFFFC, 0x10);
-	memory.write_byte(0xFFFFFFFD, 0x20);
-	memory.write_byte(0xFFFFFFFE, 0x30);
-	memory.write_byte(0xFFFFFFFF, 0x40);
+	memory.write_8(0xFFFFFFFC, 0x10);
+	memory.write_8(0xFFFFFFFD, 0x20);
+	memory.write_8(0xFFFFFFFE, 0x30);
+	memory.write_8(0xFFFFFFFF, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1587,10 +1587,10 @@ TEST(execute_lh, NegativeOffsetWrapAround) {
 TEST(execute_lh, ZeroOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 0x10);
-	memory.write_byte(5, 0x20);
-	memory.write_byte(6, 0x30);
-	memory.write_byte(7, 0x40);
+	memory.write_8(4, 0x10);
+	memory.write_8(5, 0x20);
+	memory.write_8(6, 0x30);
+	memory.write_8(7, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 6);
@@ -1604,10 +1604,10 @@ TEST(execute_lh, MisalignedAccess) {
 	// Address 5 is not on a 4 or 2 byte boundary, but that is allowed
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 0x10);
-	memory.write_byte(5, 0x20);
-	memory.write_byte(6, 0x30);
-	memory.write_byte(7, 0x40);
+	memory.write_8(4, 0x10);
+	memory.write_8(5, 0x20);
+	memory.write_8(6, 0x30);
+	memory.write_8(7, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1621,8 +1621,8 @@ TEST(execute_lh, SignExtended) {
 	// Ensures the result is signed extended
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 0b0000'0000);
-	memory.write_byte(5, 0b1000'0000);
+	memory.write_8(4, 0b0000'0000);
+	memory.write_8(5, 0b1000'0000);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1637,10 +1637,10 @@ LHU
 TEST(execute_lhu, PositiveOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(96, 0x10);
-	memory.write_byte(97, 0x20);
-	memory.write_byte(98, 0x30);
-	memory.write_byte(99, 0x40);
+	memory.write_8(96, 0x10);
+	memory.write_8(97, 0x20);
+	memory.write_8(98, 0x30);
+	memory.write_8(99, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 64);
@@ -1652,10 +1652,10 @@ TEST(execute_lhu, PositiveOffset) {
 TEST(execute_lhu, PositiveOffsetWrapAround) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 0x10);
-	memory.write_byte(5, 0x20);
-	memory.write_byte(6, 0x30);
-	memory.write_byte(7, 0x40);
+	memory.write_8(4, 0x10);
+	memory.write_8(5, 0x20);
+	memory.write_8(6, 0x30);
+	memory.write_8(7, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 0xFFFFFFFC);
@@ -1667,10 +1667,10 @@ TEST(execute_lhu, PositiveOffsetWrapAround) {
 TEST(execute_lhu, NegativeOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(32, 0x10);
-	memory.write_byte(33, 0x20);
-	memory.write_byte(34, 0x30);
-	memory.write_byte(35, 0x40);
+	memory.write_8(32, 0x10);
+	memory.write_8(33, 0x20);
+	memory.write_8(34, 0x30);
+	memory.write_8(35, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 64);
@@ -1682,10 +1682,10 @@ TEST(execute_lhu, NegativeOffset) {
 TEST(execute_lhu, NegativeOffsetWrapAround) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(0xFFFFFFFC, 0x10);
-	memory.write_byte(0xFFFFFFFD, 0x20);
-	memory.write_byte(0xFFFFFFFE, 0x30);
-	memory.write_byte(0xFFFFFFFF, 0x40);
+	memory.write_8(0xFFFFFFFC, 0x10);
+	memory.write_8(0xFFFFFFFD, 0x20);
+	memory.write_8(0xFFFFFFFE, 0x30);
+	memory.write_8(0xFFFFFFFF, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1697,10 +1697,10 @@ TEST(execute_lhu, NegativeOffsetWrapAround) {
 TEST(execute_lhu, ZeroOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 0x10);
-	memory.write_byte(5, 0x20);
-	memory.write_byte(6, 0x30);
-	memory.write_byte(7, 0x40);
+	memory.write_8(4, 0x10);
+	memory.write_8(5, 0x20);
+	memory.write_8(6, 0x30);
+	memory.write_8(7, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 6);
@@ -1714,10 +1714,10 @@ TEST(execute_lhu, MisalignedAccess) {
 	// Address 5 is not on a 4 or 2 byte boundary, but that is allowed
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 0x10);
-	memory.write_byte(5, 0x20);
-	memory.write_byte(6, 0x30);
-	memory.write_byte(7, 0x40);
+	memory.write_8(4, 0x10);
+	memory.write_8(5, 0x20);
+	memory.write_8(6, 0x30);
+	memory.write_8(7, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1731,8 +1731,8 @@ TEST(execute_lhu, SignExtended) {
 	// Ensures the result is NOT signed extended
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 0b0000'0000);
-	memory.write_byte(5, 0b1000'0000);
+	memory.write_8(4, 0b0000'0000);
+	memory.write_8(5, 0b1000'0000);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1747,10 +1747,10 @@ LW
 TEST(execute_lw, PositiveOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(96, 0x10);
-	memory.write_byte(97, 0x20);
-	memory.write_byte(98, 0x30);
-	memory.write_byte(99, 0x40);
+	memory.write_8(96, 0x10);
+	memory.write_8(97, 0x20);
+	memory.write_8(98, 0x30);
+	memory.write_8(99, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 64);
@@ -1762,10 +1762,10 @@ TEST(execute_lw, PositiveOffset) {
 TEST(execute_lw, PositiveOffsetWrapAround) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 0x10);
-	memory.write_byte(5, 0x20);
-	memory.write_byte(6, 0x30);
-	memory.write_byte(7, 0x40);
+	memory.write_8(4, 0x10);
+	memory.write_8(5, 0x20);
+	memory.write_8(6, 0x30);
+	memory.write_8(7, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 0xFFFFFFFC);
@@ -1777,10 +1777,10 @@ TEST(execute_lw, PositiveOffsetWrapAround) {
 TEST(execute_lw, NegativeOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(32, 0x10);
-	memory.write_byte(33, 0x20);
-	memory.write_byte(34, 0x30);
-	memory.write_byte(35, 0x40);
+	memory.write_8(32, 0x10);
+	memory.write_8(33, 0x20);
+	memory.write_8(34, 0x30);
+	memory.write_8(35, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 64);
@@ -1792,10 +1792,10 @@ TEST(execute_lw, NegativeOffset) {
 TEST(execute_lw, NegativeOffsetWrapAround) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(0xFFFFFFFC, 0x10);
-	memory.write_byte(0xFFFFFFFD, 0x20);
-	memory.write_byte(0xFFFFFFFE, 0x30);
-	memory.write_byte(0xFFFFFFFF, 0x40);
+	memory.write_8(0xFFFFFFFC, 0x10);
+	memory.write_8(0xFFFFFFFD, 0x20);
+	memory.write_8(0xFFFFFFFE, 0x30);
+	memory.write_8(0xFFFFFFFF, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1807,10 +1807,10 @@ TEST(execute_lw, NegativeOffsetWrapAround) {
 TEST(execute_lw, ZeroOffset) {
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(4, 0x10);
-	memory.write_byte(5, 0x20);
-	memory.write_byte(6, 0x30);
-	memory.write_byte(7, 0x40);
+	memory.write_8(4, 0x10);
+	memory.write_8(5, 0x20);
+	memory.write_8(6, 0x30);
+	memory.write_8(7, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1824,10 +1824,10 @@ TEST(execute_lw, MisalignedAccess) {
 	// Address 5 is not on a 4 or 2 byte boundary, but that is allowed
 
 	auto memory = Simple_memory_subsystem();
-	memory.write_byte(5, 0x10);
-	memory.write_byte(6, 0x20);
-	memory.write_byte(7, 0x30);
-	memory.write_byte(8, 0x40);
+	memory.write_8(5, 0x10);
+	memory.write_8(6, 0x20);
+	memory.write_8(7, 0x30);
+	memory.write_8(8, 0x40);
 
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::x3, 4);
@@ -1903,7 +1903,7 @@ TEST(execute_sb, PositiveOffset) {
 	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(0x10));
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x100);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x50);
-	EXPECT_EQ(memory.read_byte(0x110), 0x50);
+	EXPECT_EQ(memory.read_8(0x110), 0x50);
 }
 
 TEST(execute_sb, PositiveOffsetWrapAround) {
@@ -1915,7 +1915,7 @@ TEST(execute_sb, PositiveOffsetWrapAround) {
 	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(8));
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0xFFFFFFFC);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x50);
-	EXPECT_EQ(memory.read_byte(4), 0x50);
+	EXPECT_EQ(memory.read_8(4), 0x50);
 }
 
 TEST(execute_sb, NegativeOffset) {
@@ -1927,7 +1927,7 @@ TEST(execute_sb, NegativeOffset) {
 	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(-32));
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 64);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x50);
-	EXPECT_EQ(memory.read_byte(32), 0x50);
+	EXPECT_EQ(memory.read_8(32), 0x50);
 }
 
 TEST(execute_sb, NegativeOffsetWrapAround) {
@@ -1939,7 +1939,7 @@ TEST(execute_sb, NegativeOffsetWrapAround) {
 	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(-8));
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 4);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x50);
-	EXPECT_EQ(memory.read_byte(0xFFFFFFFC), 0x50);
+	EXPECT_EQ(memory.read_8(0xFFFFFFFC), 0x50);
 }
 
 TEST(execute_sb, ZeroOffset) {
@@ -1951,7 +1951,7 @@ TEST(execute_sb, ZeroOffset) {
 	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(0));
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 6);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x50);
-	EXPECT_EQ(memory.read_byte(6), 0x50);
+	EXPECT_EQ(memory.read_8(6), 0x50);
 }
 
 TEST(execute_sb, MisalignedAccess) {
@@ -1965,7 +1965,7 @@ TEST(execute_sb, MisalignedAccess) {
 	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(1));
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 4);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), 0x50);
-	EXPECT_EQ(memory.read_byte(5), 0x50);
+	EXPECT_EQ(memory.read_8(5), 0x50);
 }
 
 TEST(execute_sb, HighBitsOfRegisterIgnored) {
@@ -1979,7 +1979,7 @@ TEST(execute_sb, HighBitsOfRegisterIgnored) {
 	hart.execute_sb(Rv32_register_id::x1, Rv32_register_id::x2, Rv_stype_imm::from_offset(0));
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 4);
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x2), -1 << 7);
-	EXPECT_EQ(memory.read_byte(4), 0b1000'0000);
+	EXPECT_EQ(memory.read_8(4), 0b1000'0000);
 }
 
 /* --------------------------------------------------------

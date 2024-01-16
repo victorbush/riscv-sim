@@ -346,7 +346,7 @@ void Rv32_hart::execute_lb(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_i
 	uint32_t rs1_val = get_register(rs1);
 	int32_t offset = imm.get_signed();
 	uint32_t address = rs1_val + offset;
-	uint32_t mem = memory.read_byte(address);
+	uint32_t mem = memory.read_8(address);
 
 	// Sign extend
 	if (mem & 0b1000'0000)
@@ -360,7 +360,7 @@ void Rv32_hart::execute_lbu(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_
 	uint32_t rs1_val = get_register(rs1);
 	int32_t offset = imm.get_signed();
 	uint32_t address = rs1_val + offset;
-	uint32_t mem = memory.read_byte(address);
+	uint32_t mem = memory.read_8(address);
 
 	set_register(rd, mem);
 }
@@ -427,7 +427,7 @@ void Rv32_hart::execute_sb(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_
 	uint32_t address = rs1_val + offset;
 	uint8_t val_to_write = static_cast<uint8_t>(rs2_val) & 0xFF;
 
-	memory.write_byte(address, val_to_write);
+	memory.write_8(address, val_to_write);
 }
 
 void Rv32_hart::execute_sh(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm)
