@@ -56,6 +56,11 @@ static uint32_t create_load_signature(Rv32_load_funct3 funct3)
 	return create_itype_signature(Rv32i_opcode::load, to_underlying(funct3));
 }
 
+static uint32_t create_miscmem_signature(Rv32_miscmem_funct3 funct3)
+{
+	return create_itype_signature(Rv32i_opcode::misc_mem, to_underlying(funct3));
+}
+
 static uint32_t create_op_signature(Rv32_op_funct3 funct3, Rv32_op_funct7 funct7)
 {
 	return create_rtype_signature(Rv32i_opcode::op, to_underlying(funct3), to_underlying(funct7));
@@ -71,6 +76,11 @@ static uint32_t create_store_signature(Rv32_store_funct3 funct3)
 	return create_stype_signature(Rv32i_opcode::store, to_underlying(funct3));
 }
 
+static uint32_t create_system_signature(Rv32_system_funct3 funct3)
+{
+	return create_itype_signature(Rv32i_opcode::system, to_underlying(funct3));
+}
+
 /** Function type used for functions that resolve instruction type lookups. */
 using Rv_instruction_type_resolver = std::add_pointer_t<Rv32i_instruction_type(uint32_t instruction)>;
 
@@ -84,6 +94,19 @@ static Rv32i_instruction_type resolve_op_imm_shift_right(uint32_t instruction)
 		return Rv32i_instruction_type::srai;
 
 	return Rv32i_instruction_type::srli;
+}
+
+static Rv32i_instruction_type resolve_system_priv(uint32_t instruction)
+{
+	// Type of instruction is immediate in the I-type immediate value
+
+	const auto imm = instruction >> 20;
+	if (imm == to_underlying(Rv32_system_funct12::ebreak))
+		return Rv32i_instruction_type::ebreak;
+	if (imm == to_underlying(Rv32_system_funct12::ecall))
+		return Rv32i_instruction_type::ecall;
+
+	return Rv32i_instruction_type::invalid;
 }
 
 struct Signature_match
@@ -161,6 +184,10 @@ const map<uint32_t, Signature_match> instruction_signature_map2 = {
 	{ create_store_signature(Rv32_store_funct3::sb), Rv32i_instruction_type::sb },
 	{ create_store_signature(Rv32_store_funct3::sh), Rv32i_instruction_type::sh },
 	{ create_store_signature(Rv32_store_funct3::sw), Rv32i_instruction_type::sw },
+
+	{ create_miscmem_signature(Rv32_miscmem_funct3::fence), Rv32i_instruction_type::fence },
+
+	{ create_system_signature(Rv32_system_funct3::priv), resolve_system_priv },
 };
 
 //
@@ -254,11 +281,11 @@ const auto rv32_opcode_mask_map = map<uint8_t, uint32_t>() = {
 	{ to_underlying(Rv32i_opcode::jalr), rv32i_itype_mask },
 	{ to_underlying(Rv32i_opcode::load), rv32i_itype_mask },
 	{ to_underlying(Rv32i_opcode::lui), rv32i_utype_mask },
-	//{ to_underlying(Rv32i_opcode::misc_mem), rv32i_itype_mask },
+	{ to_underlying(Rv32i_opcode::misc_mem), rv32i_itype_mask },
 	{ to_underlying(Rv32i_opcode::op), rv32i_rtype_mask },
 	{ to_underlying(Rv32i_opcode::op_imm), rv32i_itype_mask },
 	{ to_underlying(Rv32i_opcode::store), rv32i_stype_mask },
-	//{ to_underlying(Rv32i_opcode::system), rv32i_itype_mask },
+	{ to_underlying(Rv32i_opcode::system), rv32i_itype_mask },
 };
 
 Rv32i_instruction_type Rv32i_decoder::decode_rv32i_instruction_type(uint32_t instruction)
@@ -423,6 +450,11 @@ uint32_t Rv32_encoder::encode_btype(Rv32i_opcode opcode, Rv32_branch_funct3 func
 	return imm.get_encoded() | to_underlying(opcode) | to_underlying(funct3) << 12 | to_underlying(rs1) << 15 | to_underlying(rs2) << 20;
 }
 
+static uint32_t encode_itype(Rv32i_opcode opcode, uint8_t funct3, Rv32_register_id rs1, Rv32_register_id rd, Rv_itype_imm imm)
+{
+	return imm.get_encoded() | (to_underlying(rs1) << 15) | ((funct3 & 0b111) << 12) | (to_underlying(rd) << 7) | (to_underlying(opcode));
+}
+
 uint32_t Rv32_encoder::encode_jal(Rv32_register_id rd, Rv_jtype_imm imm)
 {
 	return imm.get_encoded() | (to_underlying(rd) << 7) | to_underlying(Rv32i_opcode::jal);
@@ -436,6 +468,11 @@ uint32_t Rv32_encoder::encode_jalr(Rv32_register_id rd, Rv32_register_id rs1, Rv
 uint32_t Rv32_encoder::encode_load(Rv32_load_funct3 funct3, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
 {
 	return imm.get_encoded() | (to_underlying(rs1) << 15) | (to_underlying(funct3) << 12) | (to_underlying(rd) << 7) | (to_underlying(Rv32i_opcode::load));
+}
+
+uint32_t Rv32_encoder::encode_miscmem(Rv32_miscmem_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rd, Rv_itype_imm imm)
+{
+	return encode_itype(Rv32i_opcode::system, to_underlying(funct3), rs1, rd, imm);
 }
 
 uint32_t Rv32_encoder::encode_utype(Rv32i_opcode opcode, Rv32_register_id rd, uint32_t imm)
@@ -457,6 +494,12 @@ uint32_t Rv32_encoder::encode_op_imm(Rv32_op_imm_funct funct, Rv32_register_id r
 uint32_t Rv32_encoder::encode_store(Rv32_store_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm)
 {
 	return imm.get_encoded() | (to_underlying(rs2) << 20) | (to_underlying(rs1) << 15) | (to_underlying(funct3) << 12) | (to_underlying(Rv32i_opcode::store));
+}
+
+uint32_t Rv32_encoder::encode_system(Rv32_system_funct3 funct3, Rv32_system_funct12 funct12)
+{
+	const auto imm = Rv_itype_imm::from_unsigned(to_underlying(funct12));
+	return encode_itype(Rv32i_opcode::system, to_underlying(funct3), Rv32_register_id::x0, Rv32_register_id::x0, imm);
 }
 
 
@@ -525,6 +568,21 @@ uint32_t Rv32_encoder::encode_bne(Rv32_register_id rs1, Rv32_register_id rs2, in
 {
 	const auto imm = Rv_btype_imm::from_offset(offset);
 	return encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bne, rs1, rs2, imm);
+}
+
+uint32_t Rv32_encoder::encode_ebreak()
+{
+	return encode_system(Rv32_system_funct3::priv, Rv32_system_funct12::ebreak);
+}
+
+uint32_t Rv32_encoder::encode_ecall()
+{
+	return encode_system(Rv32_system_funct3::priv, Rv32_system_funct12::ecall);
+}
+
+uint32_t Rv32_encoder::encode_fence(Rv32_register_id rs1, Rv32_register_id rd, Rv_itype_imm imm)
+{
+	return encode_miscmem(Rv32_miscmem_funct3::fence, rs1, rd, imm);
 }
 
 uint32_t Rv32_encoder::encode_lb(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset)

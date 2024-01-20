@@ -207,6 +207,54 @@ TEST(execute_next, BNE) {
 	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x510);
 }
 
+TEST(execute_next, EBREAK) {
+
+	// EBREAK is a NOP in this implementation
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_ebreak();
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
+}
+
+TEST(execute_next, ECALL) {
+
+	// ECALL is a NOP in this implementation
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_ecall();
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
+}
+
+TEST(execute_next, FENCE) {
+
+	// FENCE is a NOP in this implementation
+
+	auto memory = Simple_memory_subsystem();
+	auto hart = Rv32_hart(memory);
+
+	auto instruction = Rv32_encoder::encode_fence(Rv32_register_id::x0, Rv32_register_id::x0, Rv_itype_imm::from_unsigned(0));
+	memory.write_32(0x500, instruction);
+
+	hart.set_register(Rv32_register_id::pc, 0x500);
+	hart.execute_next();
+
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
+}
+
 TEST(execute_next, JAL) {
 
 	auto memory = Simple_memory_subsystem();

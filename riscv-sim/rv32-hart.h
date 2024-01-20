@@ -23,6 +23,9 @@ public:
 	void execute_blt(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm);
 	void execute_bltu(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm);
 	void execute_bne(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm);
+	void execute_ebreak(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
+	void execute_ecall(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
+	void execute_fence(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
 	void execute_jal(Rv32_register_id rd, Rv_jtype_imm imm);
 	void execute_jalr(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
 	void execute_lb(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);

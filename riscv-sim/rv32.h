@@ -211,6 +211,11 @@ enum class Rv32_load_funct3 : uint8_t
 	lhu = 0b101,
 };
 
+enum class Rv32_miscmem_funct3 : uint8_t
+{
+	fence = 0b000,
+};
+
 enum class Rv32_op_funct3 : uint8_t
 {
 	add = 0b000,
@@ -251,6 +256,24 @@ enum class Rv32_op_imm_funct : uint8_t
 	srxi = 0b101, // srli and srai share the same funct, difference is bit 30
 };
 
+enum class Rv32_store_funct3 : uint8_t
+{
+	sb = 0b000,
+	sh = 0b001,
+	sw = 0b010,
+};
+
+enum class Rv32_system_funct3 : uint8_t
+{
+	priv = 0b000,
+};
+
+enum class Rv32_system_funct12 : uint8_t
+{
+	ecall = 0,
+	ebreak = 1,
+};
+
 enum class Rv32_instruction_format
 {
 	btype,
@@ -261,24 +284,14 @@ enum class Rv32_instruction_format
 	utype,
 };
 
-enum class Rv32_store_funct3 : uint8_t
-{
-	sb = 0b000,
-	sh = 0b001,
-	sw = 0b010,
-};
-
 enum class Rv32i_instruction_type
 {
 	invalid,
 
-	miscmem,
-	system,
-
-	lui,   // Load upper immediate
 	auipc, // Add upper immediate to PR register
 	jal,   // Jump and link
 	jalr,  // Jump and link register (indirect jump)
+	lui,   // Load upper immediate
 
 	// Conditional branches
 
@@ -303,7 +316,7 @@ enum class Rv32i_instruction_type
 	sh,    // Store half
 	sw,    // Store word
 
-	// Op immediate
+	// OP-IMM
 
 	addi,  // Add immediate
 
@@ -318,18 +331,27 @@ enum class Rv32i_instruction_type
 	srli,  // Shift right logicial immediate
 	srai,  // Shift right arithmetic immediate
 
-	// Op
+	// OP
 
 	add,   // Add
 	sub,   // Subtract
-	sll,
-	slt,
-	sltu,
-	xor_,
-	srl,
-	sra,
-	or_,
-	and_,
+	sll,   // Shift left logical
+	slt,   // Set less-than
+	sltu,  // Set less-than unsigned
+	xor_,  // XOR
+	srl,   // Shift right logical
+	sra,   // Shift right arithmetic
+	or_,   // OR
+	and_,  // AND
+
+	// MISC-MEM
+
+	fence,
+
+	// SYSTEM
+
+	ecall,
+	ebreak,
 };
 
 struct Rv_btype_instruction
@@ -442,9 +464,11 @@ public:
 	static uint32_t encode_jal(Rv32_register_id rd, Rv_jtype_imm imm);
 	static uint32_t encode_jalr(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
 	static uint32_t encode_load(Rv32_load_funct3 funct3, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
+	static uint32_t encode_miscmem(Rv32_miscmem_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rd, Rv_itype_imm imm);
 	static uint32_t encode_op(Rv32_op_funct3 funct3, Rv32_op_funct7 funct7, Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
 	static uint32_t encode_op_imm(Rv32_op_imm_funct funct, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
 	static uint32_t encode_store(Rv32_store_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm);
+	static uint32_t encode_system(Rv32_system_funct3 funct3, Rv32_system_funct12 funct12);
 	static uint32_t encode_utype(Rv32i_opcode opcode, Rv32_register_id rd, uint32_t imm);
 
 	static uint32_t encode_add(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
@@ -458,6 +482,9 @@ public:
 	static uint32_t encode_blt(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
 	static uint32_t encode_bltu(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
 	static uint32_t encode_bne(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
+	static uint32_t encode_ebreak();
+	static uint32_t encode_ecall();
+	static uint32_t encode_fence(Rv32_register_id rs1, Rv32_register_id rd, Rv_itype_imm imm);
 	static uint32_t encode_lb(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset);
 	static uint32_t encode_lbu(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset);
 	static uint32_t encode_lh(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset);

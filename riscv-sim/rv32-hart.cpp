@@ -84,6 +84,10 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 	{ Rv32i_instruction_type::lhu, &Rv32_hart::execute_lhu },
 	{ Rv32i_instruction_type::lw, &Rv32_hart::execute_lw },
 
+	// I-type - MISC-MEM
+
+	{ Rv32i_instruction_type::fence, &Rv32_hart::execute_fence },
+
 	// I-type - OP-IMM
 
 	{ Rv32i_instruction_type::addi, &Rv32_hart::execute_addi },
@@ -95,6 +99,11 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 	{ Rv32i_instruction_type::srli, &Rv32_hart::execute_srli },
 	{ Rv32i_instruction_type::srai, &Rv32_hart::execute_srai },
 	{ Rv32i_instruction_type::xori, &Rv32_hart::execute_xori },
+
+	// I-type - SYSTEM
+
+	{ Rv32i_instruction_type::ebreak, &Rv32_hart::execute_ebreak },
+	{ Rv32i_instruction_type::ecall, &Rv32_hart::execute_ecall },
 
 	// J-type
 
@@ -346,6 +355,24 @@ void Rv32_hart::execute_bne(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype
 	}
 
 	set_register(Rv32_register_id::pc, pc);
+}
+
+void Rv32_hart::execute_ebreak(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+{
+	// EBREAK is a NOP in this implementation.
+	return;
+}
+
+void Rv32_hart::execute_ecall(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+{
+	// ECALL is a NOP in this implementation.
+	return;
+}
+
+void Rv32_hart::execute_fence(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+{
+	// FENCE is a NOP in this implementation.
+	return;
 }
 
 void Rv32_hart::execute_jal(Rv32_register_id rd, Rv_jtype_imm imm)
