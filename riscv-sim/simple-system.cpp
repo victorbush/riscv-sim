@@ -85,21 +85,24 @@ void Simple_memory_subsystem::write_32(uint32_t address, uint32_t value)
 
 uint8_t Simple_memory_subsystem::read_8(uint32_t address) const
 {
-	return memory.at(address);
+	if (memory.contains(address))
+		return memory.at(address);
+
+	return 0;
 }
 
 uint16_t Simple_memory_subsystem::read_16(uint32_t address) const
 {
-	return (memory.at(address)
-		| (memory.at(address + 1) << 8));
+	return (read_8(address)
+		| (read_8(address + 1) << 8));
 }
 
 uint32_t Simple_memory_subsystem::read_32(uint32_t address) const
 {
-	return (memory.at(address)
-		| (memory.at(address + 1) << 8)
-		| (memory.at(address + 2) << 16)
-		| (memory.at(address + 3) << 24));
+	return (read_8(address)
+		| (read_8(address + 1) << 8)
+		| (read_8(address + 2) << 16)
+		| (read_8(address + 3) << 24));
 }
 
 }
