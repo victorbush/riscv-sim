@@ -20,6 +20,8 @@ public:
 	uint8_t read_8(uint32_t address) const override;
 	uint16_t read_16(uint32_t address) const override;
 	uint32_t read_32(uint32_t address) const override;
+	
+	void reset();
 
 private:
 	std::map<uint32_t, uint8_t> memory;
@@ -33,10 +35,11 @@ public:
 
 	void load_program(std::span<uint32_t> instructions);
 
+	Simple_memory_subsystem memory;
+	Rv32_hart hart; // Hardware thread (core)
+
 private:
 
-	Rv32_hart hart; // Hardware thread (core)
-	Simple_memory_subsystem memory;
 };
 
 }

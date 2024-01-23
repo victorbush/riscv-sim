@@ -359,8 +359,7 @@ void Rv32_hart::execute_bne(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype
 
 void Rv32_hart::execute_ebreak(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
 {
-	// EBREAK is a NOP in this implementation.
-	return;
+	throw Rv_ebreak_exception();
 }
 
 void Rv32_hart::execute_ecall(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
@@ -640,6 +639,13 @@ void Rv32_hart::set_register(Rv32_register_id register_id, uint32_t value)
 		return;
 
 	registers[static_cast<uint8_t>(register_id)] = value;
+}
+
+void Rv32_hart::reset()
+{
+	// Reset all registers to 0
+	for (auto i = 0; i < to_underlying(Rv32_register_id::_count); ++i)
+		registers[i] = 0;
 }
 
 }

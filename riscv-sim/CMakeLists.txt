@@ -14,7 +14,7 @@ add_executable (riscv-sim
 	"../third-party/cpp-httplib/httplib.h"
 )
 
-target_include_directories(riscv-sim PRIVATE "../third-party/cpp-httplib")
+target_include_directories(riscv-sim PRIVATE "../third-party/cpp-httplib" "../third-party")
 
 set_property(TARGET riscv-sim PROPERTY CXX_STANDARD 23)
 

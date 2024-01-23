@@ -105,4 +105,9 @@ uint32_t Simple_memory_subsystem::read_32(uint32_t address) const
 		| (read_8(address + 3) << 24));
 }
 
+void Simple_memory_subsystem::reset()
+{
+	memory.clear();
+}
+
 }

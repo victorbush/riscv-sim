@@ -57,6 +57,8 @@ public:
 	uint32_t get_register(Rv32_register_id register_id);
 	void set_register(Rv32_register_id register_id, uint32_t value);
 
+	void reset();
+
 private:
 	Memory& memory;
 	std::array<uint32_t, (size_t)Rv32_register_id::_count> registers;

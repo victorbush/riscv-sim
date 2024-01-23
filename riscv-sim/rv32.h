@@ -1,8 +1,17 @@
 #pragma once
 
 #include <cstdint>
+#include <exception>
 
 namespace riscv_sim {
+
+class Rv_ebreak_exception : public std::exception
+{
+	const char* what() const override
+	{
+		return "ebreak";
+	}
+};
 
 /** 12-bit immediate value used by B-type instructions. */
 struct Rv_btype_imm

@@ -209,8 +209,6 @@ TEST(execute_next, BNE) {
 
 TEST(execute_next, EBREAK) {
 
-	// EBREAK is a NOP in this implementation
-
 	auto memory = Simple_memory_subsystem();
 	auto hart = Rv32_hart(memory);
 
@@ -218,9 +216,8 @@ TEST(execute_next, EBREAK) {
 	memory.write_32(0x500, instruction);
 
 	hart.set_register(Rv32_register_id::pc, 0x500);
-	hart.execute_next();
-
-	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x504);
+	EXPECT_THROW_EX(hart.execute_next(), "ebreak");
+	EXPECT_EQ(hart.get_register(Rv32_register_id::pc), 0x500);
 }
 
 TEST(execute_next, ECALL) {
