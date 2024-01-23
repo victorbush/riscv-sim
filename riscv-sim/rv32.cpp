@@ -288,7 +288,7 @@ const auto rv32_opcode_mask_map = map<uint8_t, uint32_t>() = {
 	{ to_underlying(Rv32i_opcode::system), rv32i_itype_mask },
 };
 
-Rv32i_instruction_type Rv32i_decoder::decode_rv32i_instruction_type(uint32_t instruction)
+Rv32i_instruction_type Rv32_decoder::decode_instruction_type(uint32_t instruction)
 {
 	// Opcode is in first 7 bits
 	uint8_t opcode_raw = instruction & 0b1111111;
@@ -312,34 +312,34 @@ Rv32i_instruction_type Rv32i_decoder::decode_rv32i_instruction_type(uint32_t ins
 	return Rv32i_instruction_type::invalid;
 }
 
-Rv32i_itype_instruction Rv32i_decoder::decode_rv32i_itype(uint32_t instruction)
+Rv_itype_instruction Rv32_decoder::decode_itype(uint32_t instruction)
 {
 	// 31     20 | 19   15 | 14  12 | 11   7 | 6    0
 	// imm[11:0]     rs1     funct3      rd    opcode
 
-	const auto opcode = get_rv32i_opcode(instruction);
+	const auto opcode = get_opcode(instruction);
 	if (opcode == Rv32i_opcode::invalid)
 		throw exception("Invalid instruction.");
 
 	const uint8_t rd_raw = 0b1'1111 & (instruction >> 7);
-	const auto rd = get_rv32_register_id(rd_raw);
+	const auto rd = get_register_id(rd_raw);
 
 	const uint8_t funct3 = 0b111 & (instruction >> 12);
 
 	const uint8_t rs1_raw = 0b1'1111 & (instruction >> 15);
-	const auto rs1 = get_rv32_register_id(rs1_raw);
+	const auto rs1 = get_register_id(rs1_raw);
 
 	auto imm = Rv_itype_imm::from_instruction(instruction);
 
-	return Rv32i_itype_instruction(opcode, funct3, rd, rs1, imm);
+	return Rv_itype_instruction(opcode, funct3, rd, rs1, imm);
 }
 
-Rv_btype_instruction Rv32i_decoder::decode_btype(uint32_t instruction)
+Rv_btype_instruction Rv32_decoder::decode_btype(uint32_t instruction)
 {
 	// 31        25 | 24     20 | 19     15 | 14    12 | 11     7 | 6      0
 	// imm[12|10:5]      rs2         rs1       funct3   imm[4:1|11]  opcode
 
-	const auto opcode = get_rv32i_opcode(instruction);
+	const auto opcode = get_opcode(instruction);
 	if (opcode == Rv32i_opcode::invalid)
 		throw exception("Invalid instruction.");
 
@@ -348,97 +348,89 @@ Rv_btype_instruction Rv32i_decoder::decode_btype(uint32_t instruction)
 	const auto imm = Rv_btype_imm::from_instruction(instruction);
 
 	const uint8_t rs2_raw = 0b1'1111 & (instruction >> 20);
-	const auto rs2 = get_rv32_register_id(rs2_raw);
+	const auto rs2 = get_register_id(rs2_raw);
 
 	const uint8_t rs1_raw = 0b1'1111 & (instruction >> 15);
-	const auto rs1 = get_rv32_register_id(rs1_raw);
+	const auto rs1 = get_register_id(rs1_raw);
 
 	return Rv_btype_instruction(opcode, funct3, rs1, rs2, imm);
 }
 
-Rv_jtype_instruction Rv32i_decoder::decode_jtype(uint32_t instruction)
+Rv_jtype_instruction Rv32_decoder::decode_jtype(uint32_t instruction)
 {
 	//   31    | 30         21 |   20    | 19          12 | 11    7 | 6      0
 	// imm[20]     imm[10:1]     imm[11]     imm[19:12]        rd      opcode
 
-	const auto opcode = get_rv32i_opcode(instruction);
+	const auto opcode = get_opcode(instruction);
 	if (opcode == Rv32i_opcode::invalid)
 		throw exception("Invalid instruction.");
 
 	const uint8_t rd_raw = 0b1'1111 & (instruction >> 7);
-	const auto rd = get_rv32_register_id(rd_raw);
+	const auto rd = get_register_id(rd_raw);
 
 	const auto imm = Rv_jtype_imm::from_instruction(instruction);
 
 	return Rv_jtype_instruction(opcode, rd, imm);
 }
 
-Rv_rtype_instruction Rv32i_decoder::decode_rtype(uint32_t instruction)
+Rv_rtype_instruction Rv32_decoder::decode_rtype(uint32_t instruction)
 {
 	// 31        25 | 24     20 | 19     15 | 14    12 | 11     7 | 6      0
 	//    funct7         rs2         rs1       funct3        rd      opcode
 
-	const auto opcode = get_rv32i_opcode(instruction);
+	const auto opcode = get_opcode(instruction);
 	if (opcode == Rv32i_opcode::invalid)
 		throw exception("Invalid instruction.");
 
 	const uint8_t funct7 = 0b111'1111 & (instruction >> 25);
 
 	const uint8_t rs2_raw = 0b1'1111 & (instruction >> 20);
-	const auto rs2 = get_rv32_register_id(rs2_raw);
+	const auto rs2 = get_register_id(rs2_raw);
 
 	const uint8_t rs1_raw = 0b1'1111 & (instruction >> 15);
-	const auto rs1 = get_rv32_register_id(rs1_raw);
+	const auto rs1 = get_register_id(rs1_raw);
 
 	const uint8_t funct3 = 0b111 & (instruction >> 12);
 
 	const uint8_t rd_raw = 0b1'1111 & (instruction >> 7);
-	const auto rd = get_rv32_register_id(rd_raw);
+	const auto rd = get_register_id(rd_raw);
 
-	auto i = Rv_rtype_instruction();
-	i.opcode = opcode;
-	i.funct3 = funct3;
-	i.funct7 = funct7;
-	i.rd = rd;
-	i.rs1 = rs1;
-	i.rs2 = rs2;
-
-	return i;
+	return Rv_rtype_instruction(opcode, funct3, funct7, rd, rs1, rs2);
 }
 
-Rv_stype_instruction Rv32i_decoder::decode_stype(uint32_t instruction)
+Rv_stype_instruction Rv32_decoder::decode_stype(uint32_t instruction)
 {
 	// 31        25 | 24     20 | 19     15 | 14    12 | 11     7 | 6      0
 	//   imm[11:5]       rs2         rs1       funct3    imm[4:0]    opcode
 
-	const auto opcode = get_rv32i_opcode(instruction);
+	const auto opcode = get_opcode(instruction);
 	if (opcode == Rv32i_opcode::invalid)
 		throw exception("Invalid instruction.");
 
 	const auto imm = Rv_stype_imm::from_instruction(instruction);
 
 	const uint8_t rs2_raw = 0b1'1111 & (instruction >> 20);
-	const auto rs2 = get_rv32_register_id(rs2_raw);
+	const auto rs2 = get_register_id(rs2_raw);
 
 	const uint8_t rs1_raw = 0b1'1111 & (instruction >> 15);
-	const auto rs1 = get_rv32_register_id(rs1_raw);
+	const auto rs1 = get_register_id(rs1_raw);
 
 	const uint8_t funct3 = 0b111 & (instruction >> 12);
 
 	return Rv_stype_instruction(opcode, funct3, rs1, rs2, imm);
 }
 
-Rv_utype_instruction Rv32i_decoder::decode_utype(uint32_t instruction)
+Rv_utype_instruction Rv32_decoder::decode_utype(uint32_t instruction)
 {
 	// 31                           12 | 11   7 | 6    0
 	//           imm[31:12]                 rd    opcode
 
-	const auto opcode = get_rv32i_opcode(instruction);
+	const auto opcode = get_opcode(instruction);
 	if (opcode == Rv32i_opcode::invalid)
 		throw exception("Invalid instruction.");
 
 	const uint8_t rd_raw = 0b1'1111 & (instruction >> 7);
-	const auto rd = get_rv32_register_id(rd_raw);
+	const auto rd = get_register_id(rd_raw);
 
 	auto imm = Rv_utype_imm::from_instruction(instruction);
 
@@ -721,14 +713,14 @@ uint32_t Rv32_encoder::encode_xor(Rv_register_id rd, Rv_register_id rs1, Rv_regi
 	return encode_op(Rv32_op_funct3::xor_, Rv32_op_funct7::xor_, rd, rs1, rs2);
 }
 
-Rv_register_id Rv32i_decoder::get_rv32_register_id(uint8_t encoded_register)
+Rv_register_id Rv32_decoder::get_register_id(uint8_t encoded_register)
 {
 	// Register encoding uses 5 bits for a total of 32 possible values.
 	// The high three bits are ignored here.
 	return Rv_register_id(static_cast<Rv_register_id>(0b11111 & encoded_register));
 }
 
-Rv32i_opcode Rv32i_decoder::get_rv32i_opcode(uint32_t instruction)
+Rv32i_opcode Rv32_decoder::get_opcode(uint32_t instruction)
 {
 	const auto opcode_raw = 0b1111111 & instruction;
 

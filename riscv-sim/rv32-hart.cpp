@@ -138,7 +138,7 @@ void Rv32_hart::execute_next()
 {
 	auto next_inst_addr = get_register(Rv_register_id::pc);
 	auto next_inst = memory.read_32(next_inst_addr);
-	auto next_inst_type = Rv32i_decoder::decode_rv32i_instruction_type(next_inst);
+	auto next_inst_type = Rv32_decoder::decode_instruction_type(next_inst);
 
 	if (next_inst_type == Rv32i_instruction_type::invalid)
 		throw exception("Invalid instruction.");
@@ -151,42 +151,42 @@ void Rv32_hart::execute_next()
 	{
 	case Rv32_instruction_format::btype:
 	{
-		auto btype = Rv32i_decoder::decode_btype(next_inst);
+		auto btype = Rv32_decoder::decode_btype(next_inst);
 		(*this.*(executor.execute_btype))(btype.rs1, btype.rs2, btype.imm);
 		break;
 	}
 
 	case Rv32_instruction_format::itype:
 	{
-		auto itype = Rv32i_decoder::decode_rv32i_itype(next_inst);
+		auto itype = Rv32_decoder::decode_itype(next_inst);
 		(*this.*(executor.execute_itype))(itype.rd, itype.rs1, itype.imm);
 		break;
 	}
 	
 	case Rv32_instruction_format::jtype:
 	{
-		auto jtype = Rv32i_decoder::decode_jtype(next_inst);
+		auto jtype = Rv32_decoder::decode_jtype(next_inst);
 		(*this.*(executor.execute_jtype))(jtype.rd, jtype.imm);
 		break;
 	}
 
 	case Rv32_instruction_format::rtype:
 	{
-		auto rtype = Rv32i_decoder::decode_rtype(next_inst);
+		auto rtype = Rv32_decoder::decode_rtype(next_inst);
 		(*this.*(executor.execute_rtype))(rtype.rd, rtype.rs1, rtype.rs2);
 		break;
 	}
 
 	case Rv32_instruction_format::stype:
 	{
-		auto stype = Rv32i_decoder::decode_stype(next_inst);
+		auto stype = Rv32_decoder::decode_stype(next_inst);
 		(*this.*(executor.execute_stype))(stype.rs1, stype.rs2, stype.imm);
 		break;
 	}
 
 	case Rv32_instruction_format::utype:
 	{
-		auto utype = Rv32i_decoder::decode_utype(next_inst);
+		auto utype = Rv32_decoder::decode_utype(next_inst);
 		(*this.*(executor.execute_utype))(utype.rd, utype.imm);
 		break;
 	}

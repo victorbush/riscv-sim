@@ -370,6 +370,15 @@ struct Rv_btype_instruction
 	Rv_btype_imm imm;
 };
 
+struct Rv_itype_instruction
+{
+	Rv32i_opcode opcode;
+	uint8_t funct3;
+	Rv_register_id rd;
+	Rv_register_id rs1;
+	Rv_itype_imm imm;
+};
+
 struct Rv_jtype_instruction
 {
 	Rv32i_opcode opcode;
@@ -403,65 +412,18 @@ struct Rv_utype_instruction
 	Rv_utype_imm imm;
 };
 
-class Rv32i_itype_instruction
+class Rv32_decoder
 {
 public:
-	Rv32i_itype_instruction(
-		Rv32i_opcode opcode,
-		uint8_t funct3,
-		Rv_register_id rd,
-		Rv_register_id rs1,
-		Rv_itype_imm imm)
-		:
-		opcode(opcode),
-		funct3(funct3),
-		rd(rd),
-		rs1(rs1),
-		imm(imm)
-	{
-	}
-
-	Rv32i_opcode opcode;
-	uint8_t funct3; // TODO : Can this become an enum
-	Rv_register_id rd;
-	Rv_register_id rs1;
-	Rv_itype_imm imm;
-};
-//
-//class Rv32i_system
-//{
-//public:
-//
-//	/*
-//	Instruction execution methods
-//	*/
-//
-//	// Integer computation: register-immediate
-//
-//	virtual void execute_rv32i_addi(Rv32_register_id rd, Rv32_register_id rs1, uint32_t imm) = 0;
-//	//virtual void execute_rv32i_slti() = 0;
-//	//virtual void execute_rv32i_andi() = 0;
-//	//virtual void execute_rv32i_ori() = 0;
-//	//virtual void execute_rv32i_xori() = 0;
-//	//virtual void execute_rv32i_slli() = 0;
-//	//virtual void execute_rv32i_srli() = 0;
-//	//virtual void execute_rv32i_srai() = 0;
-//
-//	// 
-//};
-
-class Rv32i_decoder
-{
-public:
-	static Rv32i_instruction_type decode_rv32i_instruction_type(uint32_t instruction);
-	static Rv32i_itype_instruction decode_rv32i_itype(uint32_t instruction);
+	static Rv32i_instruction_type decode_instruction_type(uint32_t instruction);
 	static Rv_btype_instruction decode_btype(uint32_t instruction);
+	static Rv_itype_instruction decode_itype(uint32_t instruction);
 	static Rv_jtype_instruction decode_jtype(uint32_t instruction);
 	static Rv_rtype_instruction decode_rtype(uint32_t instruction);
 	static Rv_stype_instruction decode_stype(uint32_t instruction);
 	static Rv_utype_instruction decode_utype(uint32_t instruction);
-	static Rv_register_id get_rv32_register_id(uint8_t encoded_register);
-	static Rv32i_opcode get_rv32i_opcode(uint32_t instruction);
+	static Rv_register_id get_register_id(uint8_t encoded_register);
+	static Rv32i_opcode get_opcode(uint32_t instruction);
 };
 
 class Rv32_encoder
