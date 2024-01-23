@@ -84,7 +84,6 @@ static uint32_t create_system_signature(Rv32_system_funct3 funct3)
 /** Function type used for functions that resolve instruction type lookups. */
 using Rv_instruction_type_resolver = std::add_pointer_t<Rv32i_instruction_type(uint32_t instruction)>;
 
-
 static Rv32i_instruction_type resolve_op_imm_shift_right(uint32_t instruction)
 {
 	// SRAI (arithmetic) has bit 30 set. SRLI (logical) does not.
@@ -190,67 +189,6 @@ const map<uint32_t, Signature_match> instruction_signature_map2 = {
 	{ create_system_signature(Rv32_system_funct3::priv), resolve_system_priv },
 };
 
-//
-//// Quick way to identify what type of an instruction a raw instruction is.
-//// An instruction signature has fixed bits (opcode, funct3, funct7, etc.) set
-//// and all variables bits (rd, rs1, rs2, imm, etc.) cleared.
-//const map<uint32_t, Rv32i_instruction_type> instruction_signature_map = {
-//	//		static auto lui = Rv32i_instruction_mask::create_utype(0b0110111);
-//	//static auto auipc = Rv32i_instruction_mask::create_utype(0b0010111);
-//	//static auto jal = Rv32i_instruction_mask::create_jtype(0b1101111);
-//	//static auto jalr = Rv32i_instruction_mask::create_itype(0b1100111, 0b000);
-//
-//	//static auto beq = Rv32i_instruction_mask::create_btype(0b1100011, 0b000);
-//	//static auto bne = Rv32i_instruction_mask::create_btype(0b1100011, 0b001);
-//	//static auto blt = Rv32i_instruction_mask::create_btype(0b1100011, 0b100);
-//	//static auto bge = Rv32i_instruction_mask::create_btype(0b1100011, 0b101);
-//	//static auto bltu = Rv32i_instruction_mask::create_btype(0b1100011, 0b110);
-//	//static auto bgeu = Rv32i_instruction_mask::create_btype(0b1100011, 0b111);
-//
-//	//static auto lb = Rv32i_instruction_mask::create_itype(0b0000011, 0b000);
-//	//static auto lh = Rv32i_instruction_mask::create_itype(0b0000011, 0b001);
-//	//static auto lw = Rv32i_instruction_mask::create_itype(0b0000011, 0b010);
-//	//static auto lbu = Rv32i_instruction_mask::create_itype(0b0000011, 0b100);
-//	//static auto lhu = Rv32i_instruction_mask::create_itype(0b0000011, 0b101);
-//
-//	//static auto sb = Rv32i_instruction_mask::create_stype(0b0100011, 0b000);
-//	//static auto sh = Rv32i_instruction_mask::create_stype(0b0100011, 0b001);
-//	//static auto sw = Rv32i_instruction_mask::create_stype(0b0100011, 0b010);
-//
-//		{ create_itype_signature(Rv32i_opcode::op_imm, to_underlying(Rv32_op_imm_funct::addi)), Rv32i_instruction_type::addi },
-//		{ create_itype_signature(Rv32i_opcode::op_imm, to_underlying(Rv32_op_imm_funct::andi)), Rv32i_instruction_type::andi },
-//		{ create_itype_signature(Rv32i_opcode::op_imm, to_underlying(Rv32_op_imm_funct::ori)), Rv32i_instruction_type::ori },
-//		{ create_itype_signature(Rv32i_opcode::op_imm, to_underlying(Rv32_op_imm_funct::slti)), Rv32i_instruction_type::slti },
-//		{ create_itype_signature(Rv32i_opcode::op_imm, to_underlying(Rv32_op_imm_funct::sltiu)), Rv32i_instruction_type::sltiu },
-//		{ create_itype_signature(Rv32i_opcode::op_imm, to_underlying(Rv32_op_imm_funct::xori)), Rv32i_instruction_type::xori },
-//
-//		//static auto slti = Rv32i_instruction_mask::create_itype(0b0010011, 0b010);
-//		//static auto sltiu = Rv32i_instruction_mask::create_itype(0b0010011, 0b011);
-//		//static auto xori = Rv32i_instruction_mask::create_itype(0b0010011, 0b100);
-//		//static auto ori = Rv32i_instruction_mask::create_itype(0b0010011, 0b110);
-//		//static auto andi = Rv32i_instruction_mask::create_itype(0b0010011, 0b111);
-//
-//		//static auto slli = Rv32i_instruction_mask::create_rtype(0b0010011, 0b001, 0);
-//		//static auto srli = Rv32i_instruction_mask::create_rtype(0b0010011, 0b101, 0);
-//		//static auto srai = Rv32i_instruction_mask::create_rtype(0b0010011, 0b101, 0b0100000);
-//
-//		//static auto add = Rv32i_instruction_mask::create_rtype(0b0110011, 0b000, 0);
-//		//static auto sub = Rv32i_instruction_mask::create_rtype(0b0110011, 0b000, 0b0100000);
-//		//static auto sll = Rv32i_instruction_mask::create_rtype(0b0110011, 0b001, 0);
-//		//static auto slt = Rv32i_instruction_mask::create_rtype(0b0110011, 0b010, 0);
-//		//static auto sltu = Rv32i_instruction_mask::create_rtype(0b0110011, 0b011, 0);
-//		//static auto xor_ = Rv32i_instruction_mask::create_rtype(0b0110011, 0b100, 0);
-//		//static auto srl = Rv32i_instruction_mask::create_rtype(0b0110011, 0b101, 0);
-//		//static auto sra = Rv32i_instruction_mask::create_rtype(0b0110011, 0b101, 0b0100000);
-//		//static auto or_ = Rv32i_instruction_mask::create_rtype(0b0110011, 0b110, 0);
-//		//static auto and_ = Rv32i_instruction_mask::create_rtype(0b0110011, 0b111, 0);
-//
-//		//static auto fence = Rv32i_instruction_mask(0b000000000000'00000'111'00000'1111111, 0b0001111);
-//		//static auto ecall = Rv32i_instruction_mask(0b111111111111'11111'111'11111'1111111, 0b000000000000'00000'000'00000'1110011);
-//		//static auto ebreak = Rv32i_instruction_mask(0b111111111111'11111'111'11111'1111111, 0b000000000001'00000'000'00000'1110011);
-//
-//};
-
 /**
 Maps the raw opcode bits to the correct opcode enum.
 */
@@ -288,6 +226,12 @@ const auto rv32_opcode_mask_map = map<uint8_t, uint32_t>() = {
 	{ to_underlying(Rv_opcode::system), rv32i_itype_mask },
 };
 
+/* ========================================================
+
+Rv32_decoder
+
+======================================================== */
+
 Rv32i_instruction_type Rv32_decoder::decode_instruction_type(uint32_t instruction)
 {
 	// Opcode is in first 7 bits
@@ -312,28 +256,6 @@ Rv32i_instruction_type Rv32_decoder::decode_instruction_type(uint32_t instructio
 	return Rv32i_instruction_type::invalid;
 }
 
-Rv_itype_instruction Rv32_decoder::decode_itype(uint32_t instruction)
-{
-	// 31     20 | 19   15 | 14  12 | 11   7 | 6    0
-	// imm[11:0]     rs1     funct3      rd    opcode
-
-	const auto opcode = get_opcode(instruction);
-	if (opcode == Rv_opcode::invalid)
-		throw exception("Invalid instruction.");
-
-	const uint8_t rd_raw = 0b1'1111 & (instruction >> 7);
-	const auto rd = get_register_id(rd_raw);
-
-	const uint8_t funct3 = 0b111 & (instruction >> 12);
-
-	const uint8_t rs1_raw = 0b1'1111 & (instruction >> 15);
-	const auto rs1 = get_register_id(rs1_raw);
-
-	auto imm = Rv_itype_imm::from_instruction(instruction);
-
-	return Rv_itype_instruction(opcode, funct3, rd, rs1, imm);
-}
-
 Rv_btype_instruction Rv32_decoder::decode_btype(uint32_t instruction)
 {
 	// 31        25 | 24     20 | 19     15 | 14    12 | 11     7 | 6      0
@@ -354,6 +276,28 @@ Rv_btype_instruction Rv32_decoder::decode_btype(uint32_t instruction)
 	const auto rs1 = get_register_id(rs1_raw);
 
 	return Rv_btype_instruction(opcode, funct3, rs1, rs2, imm);
+}
+
+Rv_itype_instruction Rv32_decoder::decode_itype(uint32_t instruction)
+{
+	// 31     20 | 19   15 | 14  12 | 11   7 | 6    0
+	// imm[11:0]     rs1     funct3      rd    opcode
+
+	const auto opcode = get_opcode(instruction);
+	if (opcode == Rv_opcode::invalid)
+		throw exception("Invalid instruction.");
+
+	const uint8_t rd_raw = 0b1'1111 & (instruction >> 7);
+	const auto rd = get_register_id(rd_raw);
+
+	const uint8_t funct3 = 0b111 & (instruction >> 12);
+
+	const uint8_t rs1_raw = 0b1'1111 & (instruction >> 15);
+	const auto rs1 = get_register_id(rs1_raw);
+
+	auto imm = Rv_itype_imm::from_instruction(instruction);
+
+	return Rv_itype_instruction(opcode, funct3, rd, rs1, imm);
 }
 
 Rv_jtype_instruction Rv32_decoder::decode_jtype(uint32_t instruction)
@@ -437,6 +381,29 @@ Rv_utype_instruction Rv32_decoder::decode_utype(uint32_t instruction)
 	return Rv_utype_instruction(opcode, rd, imm);
 }
 
+Rv_register_id Rv32_decoder::get_register_id(uint8_t encoded_register)
+{
+	// Register encoding uses 5 bits for a total of 32 possible values.
+	// The high three bits are ignored here.
+	return Rv_register_id(static_cast<Rv_register_id>(0b11111 & encoded_register));
+}
+
+Rv_opcode Rv32_decoder::get_opcode(uint32_t instruction)
+{
+	const auto opcode_raw = 0b1111111 & instruction;
+
+	if (rv32i_opcode_map.contains(opcode_raw))
+		return rv32i_opcode_map.at(opcode_raw);
+
+	return Rv_opcode::invalid;
+}
+
+/* ========================================================
+
+Rv32_encoder
+
+======================================================== */
+
 uint32_t Rv32_encoder::encode_btype(Rv_opcode opcode, Rv32_branch_funct3 funct3, Rv_register_id rs1, Rv_register_id rs2, Rv_btype_imm imm)
 {
 	return imm.get_encoded() | to_underlying(opcode) | to_underlying(funct3) << 12 | to_underlying(rs1) << 15 | to_underlying(rs2) << 20;
@@ -494,10 +461,9 @@ uint32_t Rv32_encoder::encode_system(Rv32_system_funct3 funct3, Rv32_system_func
 	return encode_itype(Rv_opcode::system, to_underlying(funct3), Rv_register_id::x0, Rv_register_id::x0, imm);
 }
 
-
-
-
-
+/* --------------------------------------------------------
+Specific instruction encoding helpers
+-----------------------------------------------------------*/
 
 uint32_t Rv32_encoder::encode_add(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
@@ -711,23 +677,6 @@ uint32_t Rv32_encoder::encode_xori(Rv_register_id rd, Rv_register_id rs1, int16_
 uint32_t Rv32_encoder::encode_xor(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::xor_, Rv32_op_funct7::xor_, rd, rs1, rs2);
-}
-
-Rv_register_id Rv32_decoder::get_register_id(uint8_t encoded_register)
-{
-	// Register encoding uses 5 bits for a total of 32 possible values.
-	// The high three bits are ignored here.
-	return Rv_register_id(static_cast<Rv_register_id>(0b11111 & encoded_register));
-}
-
-Rv_opcode Rv32_decoder::get_opcode(uint32_t instruction)
-{
-	const auto opcode_raw = 0b1111111 & instruction;
-
-	if (rv32i_opcode_map.contains(opcode_raw))
-		return rv32i_opcode_map.at(opcode_raw);
-
-	return Rv_opcode::invalid;
 }
 
 /* ========================================================
