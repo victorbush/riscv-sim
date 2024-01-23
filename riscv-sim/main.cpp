@@ -15,46 +15,46 @@ static auto s_hart = Rv32_hart(s_memory);
 
 void print_registers()
 {
-	const auto reg = [](Rv32_register_id reg_id) {
+	const auto reg = [](Rv_register_id reg_id) {
 		return s_hart.get_register(reg_id);
 	};
 
 	const string right_pad = "   ";
 
 	cout << hex
-		<< "x0 (zero) " << setfill('0') << setw(8) << reg(Rv32_register_id::x0) << right_pad
-		<< "x11 (a1)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x11) << right_pad
-		<< "x22 (s6)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x22) << right_pad << endl
-		<< "x1  (ra)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x1) << right_pad
-		<< "x12 (a2)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x12) << right_pad
-		<< "x23 (s7)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x23) << right_pad << endl
-		<< "x2  (sp)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x2) << right_pad
-		<< "x13 (a3)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x13) << right_pad
-		<< "x24 (s8)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x24) << right_pad << endl
-		<< "x3  (gp)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x3) << right_pad
-		<< "x14 (a4)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x14) << right_pad
-		<< "x25 (s9)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x25) << right_pad << endl
-		<< "x4  (tp)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x4) << right_pad
-		<< "x15 (a5)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x15) << right_pad
-		<< "x26 (s10) " << setfill('0') << setw(8) << reg(Rv32_register_id::x26) << right_pad << endl
-		<< "x5  (t0)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x5) << right_pad
-		<< "x16 (a6)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x16) << right_pad
-		<< "x27 (s11) " << setfill('0') << setw(8) << reg(Rv32_register_id::x27) << right_pad << endl
-		<< "x6  (t1)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x6) << right_pad
-		<< "x17 (a7)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x17) << right_pad
-		<< "x28 (t3)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x28) << right_pad << endl
-		<< "x7  (t2)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x7) << right_pad
-		<< "x18 (s2)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x18) << right_pad
-		<< "x29 (t4)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x29) << right_pad << endl
-		<< "x8  (s0)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x8) << right_pad
-		<< "x19 (s3)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x19) << right_pad
-		<< "x30 (t5)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x30) << right_pad << endl
-		<< "x9  (s1)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x9) << right_pad
-		<< "x20 (s4)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x20) << right_pad
-		<< "x31 (t6)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x31) << right_pad << endl
-		<< "x10 (a0)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x10) << right_pad
-		<< "x21 (s5)  " << setfill('0') << setw(8) << reg(Rv32_register_id::x21) << right_pad
-		<< "pc        " << setfill('0') << setw(8) << reg(Rv32_register_id::pc) << right_pad << endl
+		<< "x0 (zero) " << setfill('0') << setw(8) << reg(Rv_register_id::x0) << right_pad
+		<< "x11 (a1)  " << setfill('0') << setw(8) << reg(Rv_register_id::x11) << right_pad
+		<< "x22 (s6)  " << setfill('0') << setw(8) << reg(Rv_register_id::x22) << right_pad << endl
+		<< "x1  (ra)  " << setfill('0') << setw(8) << reg(Rv_register_id::x1) << right_pad
+		<< "x12 (a2)  " << setfill('0') << setw(8) << reg(Rv_register_id::x12) << right_pad
+		<< "x23 (s7)  " << setfill('0') << setw(8) << reg(Rv_register_id::x23) << right_pad << endl
+		<< "x2  (sp)  " << setfill('0') << setw(8) << reg(Rv_register_id::x2) << right_pad
+		<< "x13 (a3)  " << setfill('0') << setw(8) << reg(Rv_register_id::x13) << right_pad
+		<< "x24 (s8)  " << setfill('0') << setw(8) << reg(Rv_register_id::x24) << right_pad << endl
+		<< "x3  (gp)  " << setfill('0') << setw(8) << reg(Rv_register_id::x3) << right_pad
+		<< "x14 (a4)  " << setfill('0') << setw(8) << reg(Rv_register_id::x14) << right_pad
+		<< "x25 (s9)  " << setfill('0') << setw(8) << reg(Rv_register_id::x25) << right_pad << endl
+		<< "x4  (tp)  " << setfill('0') << setw(8) << reg(Rv_register_id::x4) << right_pad
+		<< "x15 (a5)  " << setfill('0') << setw(8) << reg(Rv_register_id::x15) << right_pad
+		<< "x26 (s10) " << setfill('0') << setw(8) << reg(Rv_register_id::x26) << right_pad << endl
+		<< "x5  (t0)  " << setfill('0') << setw(8) << reg(Rv_register_id::x5) << right_pad
+		<< "x16 (a6)  " << setfill('0') << setw(8) << reg(Rv_register_id::x16) << right_pad
+		<< "x27 (s11) " << setfill('0') << setw(8) << reg(Rv_register_id::x27) << right_pad << endl
+		<< "x6  (t1)  " << setfill('0') << setw(8) << reg(Rv_register_id::x6) << right_pad
+		<< "x17 (a7)  " << setfill('0') << setw(8) << reg(Rv_register_id::x17) << right_pad
+		<< "x28 (t3)  " << setfill('0') << setw(8) << reg(Rv_register_id::x28) << right_pad << endl
+		<< "x7  (t2)  " << setfill('0') << setw(8) << reg(Rv_register_id::x7) << right_pad
+		<< "x18 (s2)  " << setfill('0') << setw(8) << reg(Rv_register_id::x18) << right_pad
+		<< "x29 (t4)  " << setfill('0') << setw(8) << reg(Rv_register_id::x29) << right_pad << endl
+		<< "x8  (s0)  " << setfill('0') << setw(8) << reg(Rv_register_id::x8) << right_pad
+		<< "x19 (s3)  " << setfill('0') << setw(8) << reg(Rv_register_id::x19) << right_pad
+		<< "x30 (t5)  " << setfill('0') << setw(8) << reg(Rv_register_id::x30) << right_pad << endl
+		<< "x9  (s1)  " << setfill('0') << setw(8) << reg(Rv_register_id::x9) << right_pad
+		<< "x20 (s4)  " << setfill('0') << setw(8) << reg(Rv_register_id::x20) << right_pad
+		<< "x31 (t6)  " << setfill('0') << setw(8) << reg(Rv_register_id::x31) << right_pad << endl
+		<< "x10 (a0)  " << setfill('0') << setw(8) << reg(Rv_register_id::x10) << right_pad
+		<< "x21 (s5)  " << setfill('0') << setw(8) << reg(Rv_register_id::x21) << right_pad
+		<< "pc        " << setfill('0') << setw(8) << reg(Rv_register_id::pc) << right_pad << endl
 		<< endl;
 }
 
@@ -103,10 +103,10 @@ void load_elf(const string& file_path)
 	}
 
 	// Set program counter to program entry point
-	s_hart.set_register(riscv_sim::Rv32_register_id::pc, reader.get_entry());
+	s_hart.set_register(riscv_sim::Rv_register_id::pc, reader.get_entry());
 
 	// Reset stack pointer to top of memory space
-	s_hart.set_register(riscv_sim::Rv32_register_id::sp, 0xFFFFFFFF);
+	s_hart.set_register(riscv_sim::Rv_register_id::sp, 0xFFFFFFFF);
 
 	cout << "Loaded " << file_path << endl << endl;
 }

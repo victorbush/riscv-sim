@@ -28,12 +28,12 @@ Rv32_hart::Rv32_hart(Memory& memory)
 
 // These types are function pointers to member methods that execute different types of instructions.
 
-typedef void (Rv32_hart::* btype_executor)(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm);
-typedef void (Rv32_hart::* itype_executor)(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
-typedef void (Rv32_hart::* jtype_executor)(Rv32_register_id rd, Rv_jtype_imm imm);
-typedef void (Rv32_hart::* rtype_executor)(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
-typedef void (Rv32_hart::* stype_executor)(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm);
-typedef void (Rv32_hart::* utype_executor)(Rv32_register_id rd, Rv_utype_imm imm);
+typedef void (Rv32_hart::* btype_executor)(Rv_register_id rs1, Rv_register_id rs2, Rv_btype_imm imm);
+typedef void (Rv32_hart::* itype_executor)(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm);
+typedef void (Rv32_hart::* jtype_executor)(Rv_register_id rd, Rv_jtype_imm imm);
+typedef void (Rv32_hart::* rtype_executor)(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2);
+typedef void (Rv32_hart::* stype_executor)(Rv_register_id rs1, Rv_register_id rs2, Rv_stype_imm imm);
+typedef void (Rv32_hart::* utype_executor)(Rv_register_id rd, Rv_utype_imm imm);
 
 /** Defines the instruction format and a pointer to the member method that executes the instruction. */
 struct Instruction_executor
@@ -136,7 +136,7 @@ static const map<Rv32i_instruction_type, Instruction_executor> instruction_execu
 
 void Rv32_hart::execute_next()
 {
-	auto next_inst_addr = get_register(Rv32_register_id::pc);
+	auto next_inst_addr = get_register(Rv_register_id::pc);
 	auto next_inst = memory.read_32(next_inst_addr);
 	auto next_inst_type = Rv32i_decoder::decode_rv32i_instruction_type(next_inst);
 
@@ -198,46 +198,46 @@ void Rv32_hart::execute_next()
 	// Certain instructions (i.e., branches) handle updating the PC register manually.
 	// If the executor doesn't manage the PC, auto-increment it here
 	if (!executor.manages_pc)
-		set_register(Rv32_register_id::pc, get_register(Rv32_register_id::pc) + 4);
+		set_register(Rv_register_id::pc, get_register(Rv_register_id::pc) + 4);
 }
 
-void Rv32_hart::execute_add(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+void Rv32_hart::execute_add(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
 	set_register(rd, rs1_val + rs2_val);
 }
 
-void Rv32_hart::execute_addi(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_addi(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	int32_t source = get_register(rs1);
 	int32_t immediate = imm.get_signed();
 	set_register(rd, source + immediate);
 }
 
-void Rv32_hart::execute_and(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+void Rv32_hart::execute_and(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
 	set_register(rd, rs1_val & rs2_val);
 }
 
-void Rv32_hart::execute_andi(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_andi(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	int32_t source = get_register(rs1);
 	int32_t immediate = imm.get_signed();
 	set_register(rd, source & immediate);
 }
 
-void Rv32_hart::execute_auipc(Rv32_register_id rd, Rv_utype_imm imm)
+void Rv32_hart::execute_auipc(Rv_register_id rd, Rv_utype_imm imm)
 {
-	uint32_t pc = get_register(Rv32_register_id::pc);
+	uint32_t pc = get_register(Rv_register_id::pc);
 	set_register(rd, pc + imm.get_decoded());
 }
 
-void Rv32_hart::execute_beq(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm)
+void Rv32_hart::execute_beq(Rv_register_id rs1, Rv_register_id rs2, Rv_btype_imm imm)
 {
-	uint32_t pc = get_register(Rv32_register_id::pc);
+	uint32_t pc = get_register(Rv_register_id::pc);
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
 	
@@ -251,12 +251,12 @@ void Rv32_hart::execute_beq(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype
 		pc += 4;
 	}
 
-	set_register(Rv32_register_id::pc, pc);
+	set_register(Rv_register_id::pc, pc);
 }
 
-void Rv32_hart::execute_bge(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm)
+void Rv32_hart::execute_bge(Rv_register_id rs1, Rv_register_id rs2, Rv_btype_imm imm)
 {
-	uint32_t pc = get_register(Rv32_register_id::pc);
+	uint32_t pc = get_register(Rv_register_id::pc);
 	
 	// Signed comparison
 	int32_t rs1_val = get_register(rs1);
@@ -272,12 +272,12 @@ void Rv32_hart::execute_bge(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype
 		pc += 4;
 	}
 
-	set_register(Rv32_register_id::pc, pc);
+	set_register(Rv_register_id::pc, pc);
 }
 
-void Rv32_hart::execute_bgeu(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm)
+void Rv32_hart::execute_bgeu(Rv_register_id rs1, Rv_register_id rs2, Rv_btype_imm imm)
 {
-	uint32_t pc = get_register(Rv32_register_id::pc);
+	uint32_t pc = get_register(Rv_register_id::pc);
 
 	// Unsigned comparison
 	uint32_t rs1_val = get_register(rs1);
@@ -293,12 +293,12 @@ void Rv32_hart::execute_bgeu(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btyp
 		pc += 4;
 	}
 
-	set_register(Rv32_register_id::pc, pc);
+	set_register(Rv_register_id::pc, pc);
 }
 
-void Rv32_hart::execute_blt(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm)
+void Rv32_hart::execute_blt(Rv_register_id rs1, Rv_register_id rs2, Rv_btype_imm imm)
 {
-	uint32_t pc = get_register(Rv32_register_id::pc);
+	uint32_t pc = get_register(Rv_register_id::pc);
 
 	// Signed comparison
 	int32_t rs1_val = get_register(rs1);
@@ -314,12 +314,12 @@ void Rv32_hart::execute_blt(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype
 		pc += 4;
 	}
 
-	set_register(Rv32_register_id::pc, pc);
+	set_register(Rv_register_id::pc, pc);
 }
 
-void Rv32_hart::execute_bltu(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm)
+void Rv32_hart::execute_bltu(Rv_register_id rs1, Rv_register_id rs2, Rv_btype_imm imm)
 {
-	uint32_t pc = get_register(Rv32_register_id::pc);
+	uint32_t pc = get_register(Rv_register_id::pc);
 
 	// Unsigned comparison
 	uint32_t rs1_val = get_register(rs1);
@@ -335,12 +335,12 @@ void Rv32_hart::execute_bltu(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btyp
 		pc += 4;
 	}
 
-	set_register(Rv32_register_id::pc, pc);
+	set_register(Rv_register_id::pc, pc);
 }
 
-void Rv32_hart::execute_bne(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm)
+void Rv32_hart::execute_bne(Rv_register_id rs1, Rv_register_id rs2, Rv_btype_imm imm)
 {
-	uint32_t pc = get_register(Rv32_register_id::pc);
+	uint32_t pc = get_register(Rv_register_id::pc);
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
 
@@ -354,47 +354,47 @@ void Rv32_hart::execute_bne(Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype
 		pc += 4;
 	}
 
-	set_register(Rv32_register_id::pc, pc);
+	set_register(Rv_register_id::pc, pc);
 }
 
-void Rv32_hart::execute_ebreak(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_ebreak(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	throw Rv_ebreak_exception();
 }
 
-void Rv32_hart::execute_ecall(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_ecall(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	// ECALL is a NOP in this implementation.
 	return;
 }
 
-void Rv32_hart::execute_fence(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_fence(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	// FENCE is a NOP in this implementation.
 	return;
 }
 
-void Rv32_hart::execute_jal(Rv32_register_id rd, Rv_jtype_imm imm)
+void Rv32_hart::execute_jal(Rv_register_id rd, Rv_jtype_imm imm)
 {
-	const auto pc = get_register(Rv32_register_id::pc);
+	const auto pc = get_register(Rv_register_id::pc);
 	uint32_t new_pc = pc + imm.get_offset();
 	
 	// Target must be 4-byte aligned
 	throw_if_branch_target_misaligned(new_pc);
 
 	// PC is set to the jump target (PC + Offset)
-	set_register(Rv32_register_id::pc, new_pc);
+	set_register(Rv_register_id::pc, new_pc);
 
 	// RD is set to instruction after the jump instruction (PC + 4)
 	set_register(rd, pc + 4);
 }
 
-void Rv32_hart::execute_jalr(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_jalr(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	// Target address is obtained by adding the sign-extended 12-bit I-immediate to rs1,
 	// then setting the least-significant bit of the result to zero.
 	
-	const auto pc = get_register(Rv32_register_id::pc);
+	const auto pc = get_register(Rv_register_id::pc);
 	const uint32_t rs1_val = get_register(rs1);
 	const int32_t offset = imm.get_signed();
 	uint32_t new_pc = rs1_val + offset;
@@ -405,13 +405,13 @@ void Rv32_hart::execute_jalr(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype
 	// Target must be 4-byte aligned
 	throw_if_branch_target_misaligned(new_pc);
 
-	set_register(Rv32_register_id::pc, new_pc);
+	set_register(Rv_register_id::pc, new_pc);
 
 	// RD is set to instruction after the jump instruction (PC + 4)
 	set_register(rd, pc + 4);
 }
 
-void Rv32_hart::execute_lb(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_lb(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	uint32_t rs1_val = get_register(rs1);
 	int32_t offset = imm.get_signed();
@@ -425,7 +425,7 @@ void Rv32_hart::execute_lb(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_i
 	set_register(rd, mem);
 }
 
-void Rv32_hart::execute_lbu(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_lbu(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	uint32_t rs1_val = get_register(rs1);
 	int32_t offset = imm.get_signed();
@@ -435,7 +435,7 @@ void Rv32_hart::execute_lbu(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_
 	set_register(rd, mem);
 }
 
-void Rv32_hart::execute_lh(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_lh(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	uint32_t rs1_val = get_register(rs1);
 	int32_t offset = imm.get_signed();
@@ -449,7 +449,7 @@ void Rv32_hart::execute_lh(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_i
 	set_register(rd, mem);
 }
 
-void Rv32_hart::execute_lhu(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_lhu(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	uint32_t rs1_val = get_register(rs1);
 	int32_t offset = imm.get_signed();
@@ -459,7 +459,7 @@ void Rv32_hart::execute_lhu(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_
 	set_register(rd, mem);
 }
 
-void Rv32_hart::execute_lw(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_lw(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	uint32_t rs1_val = get_register(rs1);
 	int32_t offset = imm.get_signed();
@@ -469,26 +469,26 @@ void Rv32_hart::execute_lw(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_i
 	set_register(rd, mem);
 }
 
-void Rv32_hart::execute_lui(Rv32_register_id rd, Rv_utype_imm imm)
+void Rv32_hart::execute_lui(Rv_register_id rd, Rv_utype_imm imm)
 {
 	set_register(rd, imm.get_decoded());
 }
 
-void Rv32_hart::execute_or(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+void Rv32_hart::execute_or(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
 	set_register(rd, rs1_val | rs2_val);
 }
 
-void Rv32_hart::execute_ori(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_ori(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	int32_t source = get_register(rs1);
 	int32_t immediate = imm.get_signed();
 	set_register(rd, source | immediate);
 }
 
-void Rv32_hart::execute_sb(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm)
+void Rv32_hart::execute_sb(Rv_register_id rs1, Rv_register_id rs2, Rv_stype_imm imm)
 {
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
@@ -500,7 +500,7 @@ void Rv32_hart::execute_sb(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_
 	memory.write_8(address, val_to_write);
 }
 
-void Rv32_hart::execute_sh(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm)
+void Rv32_hart::execute_sh(Rv_register_id rs1, Rv_register_id rs2, Rv_stype_imm imm)
 {
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
@@ -512,7 +512,7 @@ void Rv32_hart::execute_sh(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_
 	memory.write_16(address, val_to_write);
 }
 
-void Rv32_hart::execute_sll(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+void Rv32_hart::execute_sll(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	// Logical left shift on the value in rs1 by the shift amount held in the lower 5 bits of rs2.
 
@@ -522,21 +522,21 @@ void Rv32_hart::execute_sll(Rv32_register_id rd, Rv32_register_id rs1, Rv32_regi
 	set_register(rd, rs1_val << shift_amount);
 }
 
-void Rv32_hart::execute_slli(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_slli(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	uint32_t source = get_register(rs1);
 	uint8_t shift_amount = imm.get_shift_amount();
 	set_register(rd, source << shift_amount);
 }
 
-void Rv32_hart::execute_slt(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+void Rv32_hart::execute_slt(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	int32_t rs1_val = get_register(rs1);
 	int32_t rs2_val = get_register(rs2);
 	set_register(rd, rs1_val < rs2_val);
 }
 
-void Rv32_hart::execute_slti(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_slti(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	// rd = (rs1 < imm) ? 1 : 0;
 	int32_t source = get_register(rs1);
@@ -544,7 +544,7 @@ void Rv32_hart::execute_slti(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype
 	set_register(rd, (source < immediate) ? 1 : 0);
 }
 
-void Rv32_hart::execute_sltiu(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_sltiu(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	// rd = (rs1 < imm) ? 1 : 0;
 	uint32_t source = get_register(rs1);
@@ -552,14 +552,14 @@ void Rv32_hart::execute_sltiu(Rv32_register_id rd, Rv32_register_id rs1, Rv_ityp
 	set_register(rd, (source < immediate) ? 1 : 0);
 }
 
-void Rv32_hart::execute_sltu(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+void Rv32_hart::execute_sltu(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
 	set_register(rd, rs1_val < rs2_val);
 }
 
-void Rv32_hart::execute_sra(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+void Rv32_hart::execute_sra(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	// Arithmetic right shift on the value in rs1 by the shift amount held in the lower 5 bits of rs2.
 
@@ -569,7 +569,7 @@ void Rv32_hart::execute_sra(Rv32_register_id rd, Rv32_register_id rs1, Rv32_regi
 	set_register(rd, rs1_val >> shift_amount);
 }
 
-void Rv32_hart::execute_srai(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_srai(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	// Static cast to signed integer to make it more obvious what is going on.
 	// Arithemtic shift right needs signed int
@@ -578,7 +578,7 @@ void Rv32_hart::execute_srai(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype
 	set_register(rd, static_cast<int32_t>(source) >> shift_amount);
 }
 
-void Rv32_hart::execute_srl(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+void Rv32_hart::execute_srl(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	// Logical right shift on the value in rs1 by the shift amount held in the lower 5 bits of rs2.
 
@@ -588,21 +588,21 @@ void Rv32_hart::execute_srl(Rv32_register_id rd, Rv32_register_id rs1, Rv32_regi
 	set_register(rd, rs1_val >> shift_amount);
 }
 
-void Rv32_hart::execute_srli(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_srli(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	uint32_t source = get_register(rs1);
 	uint8_t shift_amount = imm.get_shift_amount();
 	set_register(rd, source >> shift_amount);
 }
 
-void Rv32_hart::execute_sub(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+void Rv32_hart::execute_sub(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
 	set_register(rd, rs1_val - rs2_val);
 }
 
-void Rv32_hart::execute_sw(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm)
+void Rv32_hart::execute_sw(Rv_register_id rs1, Rv_register_id rs2, Rv_stype_imm imm)
 {
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
@@ -613,29 +613,29 @@ void Rv32_hart::execute_sw(Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_
 	memory.write_32(address, rs2_val);
 }
 
-void Rv32_hart::execute_xor(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+void Rv32_hart::execute_xor(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	uint32_t rs1_val = get_register(rs1);
 	uint32_t rs2_val = get_register(rs2);
 	set_register(rd, rs1_val ^ rs2_val);
 }
 
-void Rv32_hart::execute_xori(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+void Rv32_hart::execute_xori(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	int32_t source = get_register(rs1);
 	int32_t immediate = imm.get_signed();
 	set_register(rd, source ^ immediate);
 }
 
-uint32_t Rv32_hart::get_register(Rv32_register_id register_id)
+uint32_t Rv32_hart::get_register(Rv_register_id register_id)
 {
 	return registers[static_cast<uint8_t>(register_id)];
 }
 
-void Rv32_hart::set_register(Rv32_register_id register_id, uint32_t value)
+void Rv32_hart::set_register(Rv_register_id register_id, uint32_t value)
 {
 	// x0 is hardcoded to 0 and can't be changed. Writes to x0 are treated as a nop.
-	if (register_id == Rv32_register_id::x0)
+	if (register_id == Rv_register_id::x0)
 		return;
 
 	registers[static_cast<uint8_t>(register_id)] = value;
@@ -644,7 +644,7 @@ void Rv32_hart::set_register(Rv32_register_id register_id, uint32_t value)
 void Rv32_hart::reset()
 {
 	// Reset all registers to 0
-	for (auto i = 0; i < to_underlying(Rv32_register_id::_count); ++i)
+	for (auto i = 0; i < to_underlying(Rv_register_id::_count); ++i)
 		registers[i] = 0;
 }
 

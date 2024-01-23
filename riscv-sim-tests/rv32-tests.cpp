@@ -14,8 +14,8 @@ TEST(decode_rv32i_itype, VariousTests) {
 	auto result = Rv32i_decoder::decode_rv32i_itype(instruction);
 	EXPECT_EQ(result.opcode, Rv32i_opcode::op_imm);
 	EXPECT_EQ(result.funct3, 3);
-	EXPECT_EQ(result.rd, Rv32_register_id::x5);
-	EXPECT_EQ(result.rs1, Rv32_register_id::x2);
+	EXPECT_EQ(result.rd, Rv_register_id::x5);
+	EXPECT_EQ(result.rs1, Rv_register_id::x2);
 	EXPECT_EQ(result.imm.get_signed(), 321);
 }
 
@@ -45,39 +45,39 @@ TEST(decode_rv32i_itype, EnsureImmSignExtended) {
 
 TEST(decode_rv32i_instruction_type, SLTI) {
 
-	auto instruction = Rv32_encoder::encode_slti(Rv32_register_id::x1, Rv32_register_id::x2, 123);
+	auto instruction = Rv32_encoder::encode_slti(Rv_register_id::x1, Rv_register_id::x2, 123);
 	auto type = Rv32i_decoder::decode_rv32i_instruction_type(instruction);
 	EXPECT_EQ(type, Rv32i_instruction_type::slti);
 }
 
 TEST(encode_btype, ValidInstruction) {
 
-	auto instruction = Rv32_encoder::encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bge, Rv32_register_id::x2, Rv32_register_id::x15, Rv_btype_imm::from_offset(-320));
+	auto instruction = Rv32_encoder::encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bge, Rv_register_id::x2, Rv_register_id::x15, Rv_btype_imm::from_offset(-320));
 	auto result = Rv32i_decoder::decode_btype(instruction);
 	EXPECT_EQ(result.opcode, Rv32i_opcode::branch);
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_branch_funct3::bge));
-	EXPECT_EQ(result.rs1, Rv32_register_id::x2);
-	EXPECT_EQ(result.rs2, Rv32_register_id::x15);
+	EXPECT_EQ(result.rs1, Rv_register_id::x2);
+	EXPECT_EQ(result.rs2, Rv_register_id::x15);
 	EXPECT_EQ(result.imm.get_offset(), -320);
 }
 
 TEST(encode_addi, ValidInstruction) {
 
-	auto instruction = Rv32_encoder::encode_addi(Rv32_register_id::x2, Rv32_register_id::x9, 123);
+	auto instruction = Rv32_encoder::encode_addi(Rv_register_id::x2, Rv_register_id::x9, 123);
 	auto result = Rv32i_decoder::decode_rv32i_itype(instruction);
 	EXPECT_EQ(result.opcode, Rv32i_opcode::op_imm);
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::addi));
-	EXPECT_EQ(result.rd, Rv32_register_id::x2);
-	EXPECT_EQ(result.rs1, Rv32_register_id::x9);
+	EXPECT_EQ(result.rd, Rv_register_id::x2);
+	EXPECT_EQ(result.rs1, Rv_register_id::x9);
 	EXPECT_EQ(result.imm.get_signed(), 123);
 }
 
 TEST(encode_auipc, ValidInstruction) {
 
-	auto instruction = Rv32_encoder::encode_auipc(Rv32_register_id::x2, 0b1111'1111'1111'1111'1111'1111);
+	auto instruction = Rv32_encoder::encode_auipc(Rv_register_id::x2, 0b1111'1111'1111'1111'1111'1111);
 	auto result = Rv32i_decoder::decode_utype(instruction);
 	EXPECT_EQ(result.opcode, Rv32i_opcode::auipc);
-	EXPECT_EQ(result.rd, Rv32_register_id::x2);
+	EXPECT_EQ(result.rd, Rv_register_id::x2);
 
 	// Ensure only 20 bits used for immediate
 	EXPECT_EQ(result.imm.get_decoded(), 0b1111'1111'1111'1111'1111'0000'0000'0000);
@@ -85,10 +85,10 @@ TEST(encode_auipc, ValidInstruction) {
 
 TEST(encode_lui, ValidInstruction) {
 
-	auto instruction = Rv32_encoder::encode_lui(Rv32_register_id::x2, 0b1111'1111'1111'1111'1111'1111);
+	auto instruction = Rv32_encoder::encode_lui(Rv_register_id::x2, 0b1111'1111'1111'1111'1111'1111);
 	auto result = Rv32i_decoder::decode_utype(instruction);
 	EXPECT_EQ(result.opcode, Rv32i_opcode::lui);
-	EXPECT_EQ(result.rd, Rv32_register_id::x2);
+	EXPECT_EQ(result.rd, Rv_register_id::x2);
 
 	// Ensure only 20 bits used for immediate
 	EXPECT_EQ(result.imm.get_decoded(), 0b1111'1111'1111'1111'1111'0000'0000'0000);
@@ -97,57 +97,57 @@ TEST(encode_lui, ValidInstruction) {
 TEST(encode_slli, ValidInstruction) {
 
 	// Set 6 bits in shift_amount and then verify that only 5 bits are used.
-	auto instruction = Rv32_encoder::encode_slli(Rv32_register_id::x2, Rv32_register_id::x9, 0b111111);
+	auto instruction = Rv32_encoder::encode_slli(Rv_register_id::x2, Rv_register_id::x9, 0b111111);
 	auto result = Rv32i_decoder::decode_rv32i_itype(instruction);
 	EXPECT_EQ(result.opcode, Rv32i_opcode::op_imm);
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::slli));
-	EXPECT_EQ(result.rd, Rv32_register_id::x2);
-	EXPECT_EQ(result.rs1, Rv32_register_id::x9);
+	EXPECT_EQ(result.rd, Rv_register_id::x2);
+	EXPECT_EQ(result.rs1, Rv_register_id::x9);
 	EXPECT_EQ(result.imm.get_signed(), 0b11111);
 }
 
 TEST(encode_slti, ValidInstruction) {
 
-	auto instruction = Rv32_encoder::encode_slti(Rv32_register_id::x2, Rv32_register_id::x9, 123);
+	auto instruction = Rv32_encoder::encode_slti(Rv_register_id::x2, Rv_register_id::x9, 123);
 	auto result = Rv32i_decoder::decode_rv32i_itype(instruction);
 	EXPECT_EQ(result.opcode, Rv32i_opcode::op_imm);
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::slti));
-	EXPECT_EQ(result.rd, Rv32_register_id::x2);
-	EXPECT_EQ(result.rs1, Rv32_register_id::x9);
+	EXPECT_EQ(result.rd, Rv_register_id::x2);
+	EXPECT_EQ(result.rs1, Rv_register_id::x9);
 	EXPECT_EQ(result.imm.get_signed(), 123);
 }
 
 TEST(encode_srai, ValidInstruction) {
 
 	// Set 6 bits in shift_amount and then verify that only 5 bits are used.
-	auto instruction = Rv32_encoder::encode_srai(Rv32_register_id::x2, Rv32_register_id::x9, 0b111111);
+	auto instruction = Rv32_encoder::encode_srai(Rv_register_id::x2, Rv_register_id::x9, 0b111111);
 	auto result = Rv32i_decoder::decode_rv32i_itype(instruction);
 	EXPECT_EQ(result.opcode, Rv32i_opcode::op_imm);
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::srxi));
-	EXPECT_EQ(result.rd, Rv32_register_id::x2);
-	EXPECT_EQ(result.rs1, Rv32_register_id::x9);
+	EXPECT_EQ(result.rd, Rv_register_id::x2);
+	EXPECT_EQ(result.rs1, Rv_register_id::x9);
 	EXPECT_EQ(result.imm.get_signed(), 0b0100'0001'1111);
 }
 
 TEST(encode_srli, ValidInstruction) {
 
 	// Set 6 bits in shift_amount and then verify that only 5 bits are used.
-	auto instruction = Rv32_encoder::encode_srli(Rv32_register_id::x2, Rv32_register_id::x9, 0b111111);
+	auto instruction = Rv32_encoder::encode_srli(Rv_register_id::x2, Rv_register_id::x9, 0b111111);
 	auto result = Rv32i_decoder::decode_rv32i_itype(instruction);
 	EXPECT_EQ(result.opcode, Rv32i_opcode::op_imm);
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::srxi));
-	EXPECT_EQ(result.rd, Rv32_register_id::x2);
-	EXPECT_EQ(result.rs1, Rv32_register_id::x9);
+	EXPECT_EQ(result.rd, Rv_register_id::x2);
+	EXPECT_EQ(result.rs1, Rv_register_id::x9);
 	EXPECT_EQ(result.imm.get_signed(), 0b11111);
 }
 
 TEST(get_rv32_register_id, ValidRange) {
 
 	auto result = Rv32i_decoder::get_rv32_register_id(0);
-	EXPECT_EQ(result, Rv32_register_id::x0);
+	EXPECT_EQ(result, Rv_register_id::x0);
 
 	result = Rv32i_decoder::get_rv32_register_id(31);
-	EXPECT_EQ(result, Rv32_register_id::x31);
+	EXPECT_EQ(result, Rv_register_id::x31);
 }
 
 TEST(get_rv32_register_id, InvalidRange) {
@@ -155,13 +155,13 @@ TEST(get_rv32_register_id, InvalidRange) {
 	// Upper bits are ignored
 
 	auto result = Rv32i_decoder::get_rv32_register_id(32);
-	EXPECT_EQ(result, Rv32_register_id::x0);
+	EXPECT_EQ(result, Rv_register_id::x0);
 
 	result = Rv32i_decoder::get_rv32_register_id(0b11100111);
-	EXPECT_EQ(result, Rv32_register_id::x7);
+	EXPECT_EQ(result, Rv_register_id::x7);
 
 	result = Rv32i_decoder::get_rv32_register_id(0xFF);
-	EXPECT_EQ(result, Rv32_register_id::x31);
+	EXPECT_EQ(result, Rv_register_id::x31);
 }
 
 TEST(get_rv32i_opcode, ValidAndInvalidValues) {
@@ -293,7 +293,7 @@ Rv_itype_imm
 
 TEST(Rv_itype_imm, from_instruction__ValidNegative) {
 
-	auto instruction = Rv32_encoder::encode_lb(Rv32_register_id::x1, Rv32_register_id::x2, -1);
+	auto instruction = Rv32_encoder::encode_lb(Rv_register_id::x1, Rv_register_id::x2, -1);
 	auto imm = Rv_itype_imm::from_instruction(instruction);
 	EXPECT_EQ(imm.get_encoded(), -1 << 20);
 	EXPECT_EQ(imm.get_signed(), -1);
@@ -302,7 +302,7 @@ TEST(Rv_itype_imm, from_instruction__ValidNegative) {
 
 TEST(Rv_itype_imm, from_instruction__ValidPositive) {
 
-	auto instruction = Rv32_encoder::encode_lb(Rv32_register_id::x1, Rv32_register_id::x2, 27);
+	auto instruction = Rv32_encoder::encode_lb(Rv_register_id::x1, Rv_register_id::x2, 27);
 	auto imm = Rv_itype_imm::from_instruction(instruction);
 	EXPECT_EQ(imm.get_encoded(), 27 << 20);
 	EXPECT_EQ(imm.get_signed(), 27);
@@ -459,7 +459,7 @@ Rv_stype_imm
 
 TEST(Rv_stype_imm, from_instruction__Valid) {
 
-	auto instruction = Rv32_encoder::encode_sb(Rv32_register_id::x1, Rv32_register_id::x2, -1);
+	auto instruction = Rv32_encoder::encode_sb(Rv_register_id::x1, Rv_register_id::x2, -1);
 	auto imm = Rv_stype_imm::from_instruction(instruction);
 	EXPECT_EQ(imm.get_encoded(), 0b1111'1110'0000'0000'0000'1111'1000'0000);
 	EXPECT_EQ(imm.get_offset(), -1);

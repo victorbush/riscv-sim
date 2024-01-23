@@ -445,53 +445,53 @@ Rv_utype_instruction Rv32i_decoder::decode_utype(uint32_t instruction)
 	return Rv_utype_instruction(opcode, rd, imm);
 }
 
-uint32_t Rv32_encoder::encode_btype(Rv32i_opcode opcode, Rv32_branch_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm)
+uint32_t Rv32_encoder::encode_btype(Rv32i_opcode opcode, Rv32_branch_funct3 funct3, Rv_register_id rs1, Rv_register_id rs2, Rv_btype_imm imm)
 {
 	return imm.get_encoded() | to_underlying(opcode) | to_underlying(funct3) << 12 | to_underlying(rs1) << 15 | to_underlying(rs2) << 20;
 }
 
-static uint32_t encode_itype(Rv32i_opcode opcode, uint8_t funct3, Rv32_register_id rs1, Rv32_register_id rd, Rv_itype_imm imm)
+static uint32_t encode_itype(Rv32i_opcode opcode, uint8_t funct3, Rv_register_id rs1, Rv_register_id rd, Rv_itype_imm imm)
 {
 	return imm.get_encoded() | (to_underlying(rs1) << 15) | ((funct3 & 0b111) << 12) | (to_underlying(rd) << 7) | (to_underlying(opcode));
 }
 
-uint32_t Rv32_encoder::encode_jal(Rv32_register_id rd, Rv_jtype_imm imm)
+uint32_t Rv32_encoder::encode_jal(Rv_register_id rd, Rv_jtype_imm imm)
 {
 	return imm.get_encoded() | (to_underlying(rd) << 7) | to_underlying(Rv32i_opcode::jal);
 }
 
-uint32_t Rv32_encoder::encode_jalr(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+uint32_t Rv32_encoder::encode_jalr(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	return imm.get_encoded() | (to_underlying(rs1) << 15) | (to_underlying(Rv32_jalr_funct3::jalr) << 12) | (to_underlying(rd) << 7) | (to_underlying(Rv32i_opcode::jalr));
 }
 
-uint32_t Rv32_encoder::encode_load(Rv32_load_funct3 funct3, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+uint32_t Rv32_encoder::encode_load(Rv32_load_funct3 funct3, Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	return imm.get_encoded() | (to_underlying(rs1) << 15) | (to_underlying(funct3) << 12) | (to_underlying(rd) << 7) | (to_underlying(Rv32i_opcode::load));
 }
 
-uint32_t Rv32_encoder::encode_miscmem(Rv32_miscmem_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rd, Rv_itype_imm imm)
+uint32_t Rv32_encoder::encode_miscmem(Rv32_miscmem_funct3 funct3, Rv_register_id rs1, Rv_register_id rd, Rv_itype_imm imm)
 {
 	return encode_itype(Rv32i_opcode::system, to_underlying(funct3), rs1, rd, imm);
 }
 
-uint32_t Rv32_encoder::encode_utype(Rv32i_opcode opcode, Rv32_register_id rd, uint32_t imm)
+uint32_t Rv32_encoder::encode_utype(Rv32i_opcode opcode, Rv_register_id rd, uint32_t imm)
 {
 	uint32_t val = (0b1111'1111'1111'1111'1111 & imm) << 12;
 	return val | (to_underlying(rd) << 7) | to_underlying(opcode);
 }
 
-uint32_t Rv32_encoder::encode_op(Rv32_op_funct3 funct3, Rv32_op_funct7 funct7, Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+uint32_t Rv32_encoder::encode_op(Rv32_op_funct3 funct3, Rv32_op_funct7 funct7, Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	return (to_underlying(funct7) << 25) | (to_underlying(rs2) << 20) | (to_underlying(rs1) << 15) | (to_underlying(funct3) << 12) | (to_underlying(rd) << 7) | (to_underlying(Rv32i_opcode::op));
 }
 
-uint32_t Rv32_encoder::encode_op_imm(Rv32_op_imm_funct funct, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm)
+uint32_t Rv32_encoder::encode_op_imm(Rv32_op_imm_funct funct, Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
 	return imm.get_encoded() | (to_underlying(rs1) << 15) | (to_underlying(funct) << 12) | (to_underlying(rd) << 7) | (to_underlying(Rv32i_opcode::op_imm));
 }
 
-uint32_t Rv32_encoder::encode_store(Rv32_store_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm)
+uint32_t Rv32_encoder::encode_store(Rv32_store_funct3 funct3, Rv_register_id rs1, Rv_register_id rs2, Rv_stype_imm imm)
 {
 	return imm.get_encoded() | (to_underlying(rs2) << 20) | (to_underlying(rs1) << 15) | (to_underlying(funct3) << 12) | (to_underlying(Rv32i_opcode::store));
 }
@@ -499,7 +499,7 @@ uint32_t Rv32_encoder::encode_store(Rv32_store_funct3 funct3, Rv32_register_id r
 uint32_t Rv32_encoder::encode_system(Rv32_system_funct3 funct3, Rv32_system_funct12 funct12)
 {
 	const auto imm = Rv_itype_imm::from_unsigned(to_underlying(funct12));
-	return encode_itype(Rv32i_opcode::system, to_underlying(funct3), Rv32_register_id::x0, Rv32_register_id::x0, imm);
+	return encode_itype(Rv32i_opcode::system, to_underlying(funct3), Rv_register_id::x0, Rv_register_id::x0, imm);
 }
 
 
@@ -507,64 +507,64 @@ uint32_t Rv32_encoder::encode_system(Rv32_system_funct3 funct3, Rv32_system_func
 
 
 
-uint32_t Rv32_encoder::encode_add(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+uint32_t Rv32_encoder::encode_add(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::add, Rv32_op_funct7::add, rd, rs1, rs2);
 }
 
-uint32_t Rv32_encoder::encode_addi(Rv32_register_id rd, Rv32_register_id rs1, int16_t imm)
+uint32_t Rv32_encoder::encode_addi(Rv_register_id rd, Rv_register_id rs1, int16_t imm)
 {
 	const auto immediate = Rv_itype_imm::from_signed(imm);
 	return encode_op_imm(Rv32_op_imm_funct::addi, rd, rs1, immediate);
 }
 
-uint32_t Rv32_encoder::encode_and(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+uint32_t Rv32_encoder::encode_and(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::and_, Rv32_op_funct7::and_, rd, rs1, rs2);
 }
 
-uint32_t Rv32_encoder::encode_andi(Rv32_register_id rd, Rv32_register_id rs1, int16_t imm)
+uint32_t Rv32_encoder::encode_andi(Rv_register_id rd, Rv_register_id rs1, int16_t imm)
 {
 	const auto immediate = Rv_itype_imm::from_signed(imm);
 	return encode_op_imm(Rv32_op_imm_funct::andi, rd, rs1, immediate);
 }
 
-uint32_t Rv32_encoder::encode_auipc(Rv32_register_id rd, uint32_t imm)
+uint32_t Rv32_encoder::encode_auipc(Rv_register_id rd, uint32_t imm)
 {
 	return encode_utype(Rv32i_opcode::auipc, rd, imm);
 }
 
-uint32_t Rv32_encoder::encode_beq(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+uint32_t Rv32_encoder::encode_beq(Rv_register_id rs1, Rv_register_id rs2, int16_t offset)
 {
 	const auto imm = Rv_btype_imm::from_offset(offset);
 	return encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::beq, rs1, rs2, imm);
 }
 
-uint32_t Rv32_encoder::encode_bge(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+uint32_t Rv32_encoder::encode_bge(Rv_register_id rs1, Rv_register_id rs2, int16_t offset)
 {
 	const auto imm = Rv_btype_imm::from_offset(offset);
 	return encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bge, rs1, rs2, imm);
 }
 
-uint32_t Rv32_encoder::encode_bgeu(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+uint32_t Rv32_encoder::encode_bgeu(Rv_register_id rs1, Rv_register_id rs2, int16_t offset)
 {
 	const auto imm = Rv_btype_imm::from_offset(offset);
 	return encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bgeu, rs1, rs2, imm);
 }
 
-uint32_t Rv32_encoder::encode_blt(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+uint32_t Rv32_encoder::encode_blt(Rv_register_id rs1, Rv_register_id rs2, int16_t offset)
 {
 	const auto imm = Rv_btype_imm::from_offset(offset);
 	return encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::blt, rs1, rs2, imm);
 }
 
-uint32_t Rv32_encoder::encode_bltu(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+uint32_t Rv32_encoder::encode_bltu(Rv_register_id rs1, Rv_register_id rs2, int16_t offset)
 {
 	const auto imm = Rv_btype_imm::from_offset(offset);
 	return encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bltu, rs1, rs2, imm);
 }
 
-uint32_t Rv32_encoder::encode_bne(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+uint32_t Rv32_encoder::encode_bne(Rv_register_id rs1, Rv_register_id rs2, int16_t offset)
 {
 	const auto imm = Rv_btype_imm::from_offset(offset);
 	return encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bne, rs1, rs2, imm);
@@ -580,152 +580,152 @@ uint32_t Rv32_encoder::encode_ecall()
 	return encode_system(Rv32_system_funct3::priv, Rv32_system_funct12::ecall);
 }
 
-uint32_t Rv32_encoder::encode_fence(Rv32_register_id rs1, Rv32_register_id rd, Rv_itype_imm imm)
+uint32_t Rv32_encoder::encode_fence(Rv_register_id rs1, Rv_register_id rd, Rv_itype_imm imm)
 {
 	return encode_miscmem(Rv32_miscmem_funct3::fence, rs1, rd, imm);
 }
 
-uint32_t Rv32_encoder::encode_lb(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset)
+uint32_t Rv32_encoder::encode_lb(Rv_register_id rd, Rv_register_id rs1, int16_t offset)
 {
 	const auto imm = Rv_itype_imm::from_signed(offset);
 	return encode_load(Rv32_load_funct3::lb, rd, rs1, imm);
 }
 
-uint32_t Rv32_encoder::encode_lbu(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset)
+uint32_t Rv32_encoder::encode_lbu(Rv_register_id rd, Rv_register_id rs1, int16_t offset)
 {
 	const auto imm = Rv_itype_imm::from_signed(offset);
 	return encode_load(Rv32_load_funct3::lbu, rd, rs1, imm);
 }
 
-uint32_t Rv32_encoder::encode_lh(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset)
+uint32_t Rv32_encoder::encode_lh(Rv_register_id rd, Rv_register_id rs1, int16_t offset)
 {
 	const auto imm = Rv_itype_imm::from_signed(offset);
 	return encode_load(Rv32_load_funct3::lh, rd, rs1, imm);
 }
 
-uint32_t Rv32_encoder::encode_lhu(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset)
+uint32_t Rv32_encoder::encode_lhu(Rv_register_id rd, Rv_register_id rs1, int16_t offset)
 {
 	const auto imm = Rv_itype_imm::from_signed(offset);
 	return encode_load(Rv32_load_funct3::lhu, rd, rs1, imm);
 }
 
-uint32_t Rv32_encoder::encode_lw(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset)
+uint32_t Rv32_encoder::encode_lw(Rv_register_id rd, Rv_register_id rs1, int16_t offset)
 {
 	const auto imm = Rv_itype_imm::from_signed(offset);
 	return encode_load(Rv32_load_funct3::lw, rd, rs1, imm);
 }
 
-uint32_t Rv32_encoder::encode_lui(Rv32_register_id rd, uint32_t imm)
+uint32_t Rv32_encoder::encode_lui(Rv_register_id rd, uint32_t imm)
 {
 	return encode_utype(Rv32i_opcode::lui, rd, imm);
 }
 
-uint32_t Rv32_encoder::encode_or(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+uint32_t Rv32_encoder::encode_or(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::or_, Rv32_op_funct7::or_, rd, rs1, rs2);
 }
 
-uint32_t Rv32_encoder::encode_ori(Rv32_register_id rd, Rv32_register_id rs1, int16_t imm)
+uint32_t Rv32_encoder::encode_ori(Rv_register_id rd, Rv_register_id rs1, int16_t imm)
 {
 	const auto immediate = Rv_itype_imm::from_signed(imm);
 	return encode_op_imm(Rv32_op_imm_funct::ori, rd, rs1, immediate);
 }
 
-uint32_t Rv32_encoder::encode_sll(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+uint32_t Rv32_encoder::encode_sll(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::sll, Rv32_op_funct7::sll, rd, rs1, rs2);
 }
 
-uint32_t Rv32_encoder::encode_slli(Rv32_register_id rd, Rv32_register_id rs1, uint8_t shift_amount)
+uint32_t Rv32_encoder::encode_slli(Rv_register_id rd, Rv_register_id rs1, uint8_t shift_amount)
 {
 	const auto imm = Rv_itype_imm::from_unsigned(0b11111 & shift_amount);
 	return encode_op_imm(Rv32_op_imm_funct::slli, rd, rs1, imm);
 }
 
-uint32_t Rv32_encoder::encode_slt(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+uint32_t Rv32_encoder::encode_slt(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::slt, Rv32_op_funct7::slt, rd, rs1, rs2);
 }
 
-uint32_t Rv32_encoder::encode_sltu(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+uint32_t Rv32_encoder::encode_sltu(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::sltu, Rv32_op_funct7::sltu, rd, rs1, rs2);
 }
 
-uint32_t Rv32_encoder::encode_slti(Rv32_register_id rd, Rv32_register_id rs1, int16_t imm)
+uint32_t Rv32_encoder::encode_slti(Rv_register_id rd, Rv_register_id rs1, int16_t imm)
 {
 	const auto immediate = Rv_itype_imm::from_signed(imm);
 	return encode_op_imm(Rv32_op_imm_funct::slti, rd, rs1, immediate);
 }
 
-uint32_t Rv32_encoder::encode_sltiu(Rv32_register_id rd, Rv32_register_id rs1, uint16_t imm)
+uint32_t Rv32_encoder::encode_sltiu(Rv_register_id rd, Rv_register_id rs1, uint16_t imm)
 {
 	const auto immediate = Rv_itype_imm::from_unsigned(imm);
 	return encode_op_imm(Rv32_op_imm_funct::sltiu, rd, rs1, immediate);
 }
 
-uint32_t Rv32_encoder::encode_sb(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+uint32_t Rv32_encoder::encode_sb(Rv_register_id rs1, Rv_register_id rs2, int16_t offset)
 {
 	const auto imm = Rv_stype_imm::from_offset(offset);
 	return encode_store(Rv32_store_funct3::sb, rs1, rs2, imm);
 }
 
-uint32_t Rv32_encoder::encode_sh(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+uint32_t Rv32_encoder::encode_sh(Rv_register_id rs1, Rv_register_id rs2, int16_t offset)
 {
 	const auto imm = Rv_stype_imm::from_offset(offset);
 	return encode_store(Rv32_store_funct3::sh, rs1, rs2, imm);
 }
 
-uint32_t Rv32_encoder::encode_sra(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+uint32_t Rv32_encoder::encode_sra(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::sra, Rv32_op_funct7::sra, rd, rs1, rs2);
 }
 
-uint32_t Rv32_encoder::encode_srai(Rv32_register_id rd, Rv32_register_id rs1, uint8_t shift_amount)
+uint32_t Rv32_encoder::encode_srai(Rv_register_id rd, Rv_register_id rs1, uint8_t shift_amount)
 {
 	// Bit 10 of the immediate is set for shift right
 	const auto imm = Rv_itype_imm::from_unsigned((1 << 10) | (0b11111 & shift_amount));
 	return encode_op_imm(Rv32_op_imm_funct::srxi, rd, rs1, imm);
 }
 
-uint32_t Rv32_encoder::encode_srl(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+uint32_t Rv32_encoder::encode_srl(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::srl, Rv32_op_funct7::srl, rd, rs1, rs2);
 }
 
-uint32_t Rv32_encoder::encode_srli(Rv32_register_id rd, Rv32_register_id rs1, uint8_t shift_amount)
+uint32_t Rv32_encoder::encode_srli(Rv_register_id rd, Rv_register_id rs1, uint8_t shift_amount)
 {
 	const auto imm = Rv_itype_imm::from_unsigned(0b11111 & shift_amount);
 	return encode_op_imm(Rv32_op_imm_funct::srxi, rd, rs1, imm);
 }
 
-uint32_t Rv32_encoder::encode_sub(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+uint32_t Rv32_encoder::encode_sub(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::sub, Rv32_op_funct7::sub, rd, rs1, rs2);
 }
 
-uint32_t Rv32_encoder::encode_sw(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset)
+uint32_t Rv32_encoder::encode_sw(Rv_register_id rs1, Rv_register_id rs2, int16_t offset)
 {
 	const auto imm = Rv_stype_imm::from_offset(offset);
 	return encode_store(Rv32_store_funct3::sw, rs1, rs2, imm);
 }
 
-uint32_t Rv32_encoder::encode_xori(Rv32_register_id rd, Rv32_register_id rs1, int16_t imm)
+uint32_t Rv32_encoder::encode_xori(Rv_register_id rd, Rv_register_id rs1, int16_t imm)
 {
 	const auto immediate = Rv_itype_imm::from_signed(imm);
 	return encode_op_imm(Rv32_op_imm_funct::xori, rd, rs1, immediate);
 }
 
-uint32_t Rv32_encoder::encode_xor(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2)
+uint32_t Rv32_encoder::encode_xor(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2)
 {
 	return encode_op(Rv32_op_funct3::xor_, Rv32_op_funct7::xor_, rd, rs1, rs2);
 }
 
-Rv32_register_id Rv32i_decoder::get_rv32_register_id(uint8_t encoded_register)
+Rv_register_id Rv32i_decoder::get_rv32_register_id(uint8_t encoded_register)
 {
 	// Register encoding uses 5 bits for a total of 32 possible values.
 	// The high three bits are ignored here.
-	return Rv32_register_id(static_cast<Rv32_register_id>(0b11111 & encoded_register));
+	return Rv_register_id(static_cast<Rv_register_id>(0b11111 & encoded_register));
 }
 
 Rv32i_opcode Rv32i_decoder::get_rv32i_opcode(uint32_t instruction)

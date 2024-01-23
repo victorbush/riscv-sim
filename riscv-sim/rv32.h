@@ -127,7 +127,7 @@ private:
 	uint32_t _encoded;  // Immediate value encoded into a 32-bit instruction
 };
 
-enum class Rv32_register_id : uint8_t
+enum class Rv_register_id : uint8_t
 {
 	x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, x25, x26, x27, x28, x29, x30, x31,
 	pc,
@@ -365,15 +365,15 @@ struct Rv_btype_instruction
 {
 	Rv32i_opcode opcode;
 	uint8_t funct3;
-	Rv32_register_id rs1;
-	Rv32_register_id rs2;
+	Rv_register_id rs1;
+	Rv_register_id rs2;
 	Rv_btype_imm imm;
 };
 
 struct Rv_jtype_instruction
 {
 	Rv32i_opcode opcode;
-	Rv32_register_id rd;
+	Rv_register_id rd;
 	Rv_jtype_imm imm;
 };
 
@@ -382,24 +382,24 @@ struct Rv_rtype_instruction
 	Rv32i_opcode opcode;
 	uint8_t funct3;
 	uint8_t funct7;
-	Rv32_register_id rd;
-	Rv32_register_id rs1;
-	Rv32_register_id rs2;
+	Rv_register_id rd;
+	Rv_register_id rs1;
+	Rv_register_id rs2;
 };
 
 struct Rv_stype_instruction
 {
 	Rv32i_opcode opcode;
 	uint8_t funct3;
-	Rv32_register_id rs1;
-	Rv32_register_id rs2;
+	Rv_register_id rs1;
+	Rv_register_id rs2;
 	Rv_stype_imm imm;
 };
 
 struct Rv_utype_instruction
 {
 	Rv32i_opcode opcode;
-	Rv32_register_id rd;
+	Rv_register_id rd;
 	Rv_utype_imm imm;
 };
 
@@ -409,8 +409,8 @@ public:
 	Rv32i_itype_instruction(
 		Rv32i_opcode opcode,
 		uint8_t funct3,
-		Rv32_register_id rd,
-		Rv32_register_id rs1,
+		Rv_register_id rd,
+		Rv_register_id rs1,
 		Rv_itype_imm imm)
 		:
 		opcode(opcode),
@@ -423,8 +423,8 @@ public:
 
 	Rv32i_opcode opcode;
 	uint8_t funct3; // TODO : Can this become an enum
-	Rv32_register_id rd;
-	Rv32_register_id rs1;
+	Rv_register_id rd;
+	Rv_register_id rs1;
 	Rv_itype_imm imm;
 };
 //
@@ -460,62 +460,62 @@ public:
 	static Rv_rtype_instruction decode_rtype(uint32_t instruction);
 	static Rv_stype_instruction decode_stype(uint32_t instruction);
 	static Rv_utype_instruction decode_utype(uint32_t instruction);
-	static Rv32_register_id get_rv32_register_id(uint8_t encoded_register);
+	static Rv_register_id get_rv32_register_id(uint8_t encoded_register);
 	static Rv32i_opcode get_rv32i_opcode(uint32_t instruction);
 };
 
 class Rv32_encoder
 {
 public:
-	static uint32_t encode_btype(Rv32i_opcode opcode, Rv32_branch_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rs2, Rv_btype_imm imm);
-	static uint32_t encode_jal(Rv32_register_id rd, Rv_jtype_imm imm);
-	static uint32_t encode_jalr(Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
-	static uint32_t encode_load(Rv32_load_funct3 funct3, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
-	static uint32_t encode_miscmem(Rv32_miscmem_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rd, Rv_itype_imm imm);
-	static uint32_t encode_op(Rv32_op_funct3 funct3, Rv32_op_funct7 funct7, Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
-	static uint32_t encode_op_imm(Rv32_op_imm_funct funct, Rv32_register_id rd, Rv32_register_id rs1, Rv_itype_imm imm);
-	static uint32_t encode_store(Rv32_store_funct3 funct3, Rv32_register_id rs1, Rv32_register_id rs2, Rv_stype_imm imm);
+	static uint32_t encode_btype(Rv32i_opcode opcode, Rv32_branch_funct3 funct3, Rv_register_id rs1, Rv_register_id rs2, Rv_btype_imm imm);
+	static uint32_t encode_jal(Rv_register_id rd, Rv_jtype_imm imm);
+	static uint32_t encode_jalr(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm);
+	static uint32_t encode_load(Rv32_load_funct3 funct3, Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm);
+	static uint32_t encode_miscmem(Rv32_miscmem_funct3 funct3, Rv_register_id rs1, Rv_register_id rd, Rv_itype_imm imm);
+	static uint32_t encode_op(Rv32_op_funct3 funct3, Rv32_op_funct7 funct7, Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2);
+	static uint32_t encode_op_imm(Rv32_op_imm_funct funct, Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm);
+	static uint32_t encode_store(Rv32_store_funct3 funct3, Rv_register_id rs1, Rv_register_id rs2, Rv_stype_imm imm);
 	static uint32_t encode_system(Rv32_system_funct3 funct3, Rv32_system_funct12 funct12);
-	static uint32_t encode_utype(Rv32i_opcode opcode, Rv32_register_id rd, uint32_t imm);
+	static uint32_t encode_utype(Rv32i_opcode opcode, Rv_register_id rd, uint32_t imm);
 
-	static uint32_t encode_add(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
-	static uint32_t encode_addi(Rv32_register_id rd, Rv32_register_id rs1, int16_t imm);
-	static uint32_t encode_and(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
-	static uint32_t encode_andi(Rv32_register_id rd, Rv32_register_id rs1, int16_t imm);
-	static uint32_t encode_auipc(Rv32_register_id rd, uint32_t imm);
-	static uint32_t encode_beq(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
-	static uint32_t encode_bge(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
-	static uint32_t encode_bgeu(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
-	static uint32_t encode_blt(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
-	static uint32_t encode_bltu(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
-	static uint32_t encode_bne(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
+	static uint32_t encode_add(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2);
+	static uint32_t encode_addi(Rv_register_id rd, Rv_register_id rs1, int16_t imm);
+	static uint32_t encode_and(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2);
+	static uint32_t encode_andi(Rv_register_id rd, Rv_register_id rs1, int16_t imm);
+	static uint32_t encode_auipc(Rv_register_id rd, uint32_t imm);
+	static uint32_t encode_beq(Rv_register_id rs1, Rv_register_id rs2, int16_t offset);
+	static uint32_t encode_bge(Rv_register_id rs1, Rv_register_id rs2, int16_t offset);
+	static uint32_t encode_bgeu(Rv_register_id rs1, Rv_register_id rs2, int16_t offset);
+	static uint32_t encode_blt(Rv_register_id rs1, Rv_register_id rs2, int16_t offset);
+	static uint32_t encode_bltu(Rv_register_id rs1, Rv_register_id rs2, int16_t offset);
+	static uint32_t encode_bne(Rv_register_id rs1, Rv_register_id rs2, int16_t offset);
 	static uint32_t encode_ebreak();
 	static uint32_t encode_ecall();
-	static uint32_t encode_fence(Rv32_register_id rs1, Rv32_register_id rd, Rv_itype_imm imm);
-	static uint32_t encode_lb(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset);
-	static uint32_t encode_lbu(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset);
-	static uint32_t encode_lh(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset);
-	static uint32_t encode_lhu(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset);
-	static uint32_t encode_lw(Rv32_register_id rd, Rv32_register_id rs1, int16_t offset);
-	static uint32_t encode_lui(Rv32_register_id rd, uint32_t imm);
-	static uint32_t encode_or(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
-	static uint32_t encode_ori(Rv32_register_id rd, Rv32_register_id rs1, int16_t imm);
-	static uint32_t encode_sll(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
-	static uint32_t encode_slli(Rv32_register_id rd, Rv32_register_id rs1, uint8_t shift_amount);
-	static uint32_t encode_slt(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
-	static uint32_t encode_sltu(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
-	static uint32_t encode_slti(Rv32_register_id rd, Rv32_register_id rs1, int16_t imm);
-	static uint32_t encode_sltiu(Rv32_register_id rd, Rv32_register_id rs1, uint16_t imm);
-	static uint32_t encode_sb(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
-	static uint32_t encode_sh(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
-	static uint32_t encode_sra(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
-	static uint32_t encode_srai(Rv32_register_id rd, Rv32_register_id rs1, uint8_t shift_amount);
-	static uint32_t encode_srl(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
-	static uint32_t encode_srli(Rv32_register_id rd, Rv32_register_id rs1, uint8_t shift_amount);
-	static uint32_t encode_sub(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
-	static uint32_t encode_sw(Rv32_register_id rs1, Rv32_register_id rs2, int16_t offset);
-	static uint32_t encode_xori(Rv32_register_id rd, Rv32_register_id rs1, int16_t imm);
-	static uint32_t encode_xor(Rv32_register_id rd, Rv32_register_id rs1, Rv32_register_id rs2);
+	static uint32_t encode_fence(Rv_register_id rs1, Rv_register_id rd, Rv_itype_imm imm);
+	static uint32_t encode_lb(Rv_register_id rd, Rv_register_id rs1, int16_t offset);
+	static uint32_t encode_lbu(Rv_register_id rd, Rv_register_id rs1, int16_t offset);
+	static uint32_t encode_lh(Rv_register_id rd, Rv_register_id rs1, int16_t offset);
+	static uint32_t encode_lhu(Rv_register_id rd, Rv_register_id rs1, int16_t offset);
+	static uint32_t encode_lw(Rv_register_id rd, Rv_register_id rs1, int16_t offset);
+	static uint32_t encode_lui(Rv_register_id rd, uint32_t imm);
+	static uint32_t encode_or(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2);
+	static uint32_t encode_ori(Rv_register_id rd, Rv_register_id rs1, int16_t imm);
+	static uint32_t encode_sll(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2);
+	static uint32_t encode_slli(Rv_register_id rd, Rv_register_id rs1, uint8_t shift_amount);
+	static uint32_t encode_slt(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2);
+	static uint32_t encode_sltu(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2);
+	static uint32_t encode_slti(Rv_register_id rd, Rv_register_id rs1, int16_t imm);
+	static uint32_t encode_sltiu(Rv_register_id rd, Rv_register_id rs1, uint16_t imm);
+	static uint32_t encode_sb(Rv_register_id rs1, Rv_register_id rs2, int16_t offset);
+	static uint32_t encode_sh(Rv_register_id rs1, Rv_register_id rs2, int16_t offset);
+	static uint32_t encode_sra(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2);
+	static uint32_t encode_srai(Rv_register_id rd, Rv_register_id rs1, uint8_t shift_amount);
+	static uint32_t encode_srl(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2);
+	static uint32_t encode_srli(Rv_register_id rd, Rv_register_id rs1, uint8_t shift_amount);
+	static uint32_t encode_sub(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2);
+	static uint32_t encode_sw(Rv_register_id rs1, Rv_register_id rs2, int16_t offset);
+	static uint32_t encode_xori(Rv_register_id rd, Rv_register_id rs1, int16_t imm);
+	static uint32_t encode_xor(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2);
 };
 
 }
