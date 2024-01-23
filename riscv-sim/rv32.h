@@ -169,7 +169,7 @@ enum class Rv_register_id : uint8_t
 	t6 = x31,    // Temporary 6
 };
 
-enum class Rv32i_opcode : uint8_t
+enum class Rv_opcode : uint8_t
 {
 	invalid = 0,
 
@@ -363,7 +363,7 @@ enum class Rv32i_instruction_type
 
 struct Rv_btype_instruction
 {
-	Rv32i_opcode opcode;
+	Rv_opcode opcode;
 	uint8_t funct3;
 	Rv_register_id rs1;
 	Rv_register_id rs2;
@@ -372,7 +372,7 @@ struct Rv_btype_instruction
 
 struct Rv_itype_instruction
 {
-	Rv32i_opcode opcode;
+	Rv_opcode opcode;
 	uint8_t funct3;
 	Rv_register_id rd;
 	Rv_register_id rs1;
@@ -381,14 +381,14 @@ struct Rv_itype_instruction
 
 struct Rv_jtype_instruction
 {
-	Rv32i_opcode opcode;
+	Rv_opcode opcode;
 	Rv_register_id rd;
 	Rv_jtype_imm imm;
 };
 
 struct Rv_rtype_instruction
 {
-	Rv32i_opcode opcode;
+	Rv_opcode opcode;
 	uint8_t funct3;
 	uint8_t funct7;
 	Rv_register_id rd;
@@ -398,7 +398,7 @@ struct Rv_rtype_instruction
 
 struct Rv_stype_instruction
 {
-	Rv32i_opcode opcode;
+	Rv_opcode opcode;
 	uint8_t funct3;
 	Rv_register_id rs1;
 	Rv_register_id rs2;
@@ -407,7 +407,7 @@ struct Rv_stype_instruction
 
 struct Rv_utype_instruction
 {
-	Rv32i_opcode opcode;
+	Rv_opcode opcode;
 	Rv_register_id rd;
 	Rv_utype_imm imm;
 };
@@ -423,13 +423,13 @@ public:
 	static Rv_stype_instruction decode_stype(uint32_t instruction);
 	static Rv_utype_instruction decode_utype(uint32_t instruction);
 	static Rv_register_id get_register_id(uint8_t encoded_register);
-	static Rv32i_opcode get_opcode(uint32_t instruction);
+	static Rv_opcode get_opcode(uint32_t instruction);
 };
 
 class Rv32_encoder
 {
 public:
-	static uint32_t encode_btype(Rv32i_opcode opcode, Rv32_branch_funct3 funct3, Rv_register_id rs1, Rv_register_id rs2, Rv_btype_imm imm);
+	static uint32_t encode_btype(Rv_opcode opcode, Rv32_branch_funct3 funct3, Rv_register_id rs1, Rv_register_id rs2, Rv_btype_imm imm);
 	static uint32_t encode_jal(Rv_register_id rd, Rv_jtype_imm imm);
 	static uint32_t encode_jalr(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm);
 	static uint32_t encode_load(Rv32_load_funct3 funct3, Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm);
@@ -438,7 +438,7 @@ public:
 	static uint32_t encode_op_imm(Rv32_op_imm_funct funct, Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm);
 	static uint32_t encode_store(Rv32_store_funct3 funct3, Rv_register_id rs1, Rv_register_id rs2, Rv_stype_imm imm);
 	static uint32_t encode_system(Rv32_system_funct3 funct3, Rv32_system_funct12 funct12);
-	static uint32_t encode_utype(Rv32i_opcode opcode, Rv_register_id rd, uint32_t imm);
+	static uint32_t encode_utype(Rv_opcode opcode, Rv_register_id rd, uint32_t imm);
 
 	static uint32_t encode_add(Rv_register_id rd, Rv_register_id rs1, Rv_register_id rs2);
 	static uint32_t encode_addi(Rv_register_id rd, Rv_register_id rs1, int16_t imm);

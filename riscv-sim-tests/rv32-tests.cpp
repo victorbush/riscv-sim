@@ -12,7 +12,7 @@ TEST(decode_rv32i_itype, VariousTests) {
 
 	uint32_t instruction = (321 << 20) | (2 << 15) | (3 << 12) | (5 << 7) | (0b0010011);
 	auto result = Rv32_decoder::decode_itype(instruction);
-	EXPECT_EQ(result.opcode, Rv32i_opcode::op_imm);
+	EXPECT_EQ(result.opcode, Rv_opcode::op_imm);
 	EXPECT_EQ(result.funct3, 3);
 	EXPECT_EQ(result.rd, Rv_register_id::x5);
 	EXPECT_EQ(result.rs1, Rv_register_id::x2);
@@ -52,9 +52,9 @@ TEST(decode_instruction_type, SLTI) {
 
 TEST(encode_btype, ValidInstruction) {
 
-	auto instruction = Rv32_encoder::encode_btype(Rv32i_opcode::branch, Rv32_branch_funct3::bge, Rv_register_id::x2, Rv_register_id::x15, Rv_btype_imm::from_offset(-320));
+	auto instruction = Rv32_encoder::encode_btype(Rv_opcode::branch, Rv32_branch_funct3::bge, Rv_register_id::x2, Rv_register_id::x15, Rv_btype_imm::from_offset(-320));
 	auto result = Rv32_decoder::decode_btype(instruction);
-	EXPECT_EQ(result.opcode, Rv32i_opcode::branch);
+	EXPECT_EQ(result.opcode, Rv_opcode::branch);
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_branch_funct3::bge));
 	EXPECT_EQ(result.rs1, Rv_register_id::x2);
 	EXPECT_EQ(result.rs2, Rv_register_id::x15);
@@ -65,7 +65,7 @@ TEST(encode_addi, ValidInstruction) {
 
 	auto instruction = Rv32_encoder::encode_addi(Rv_register_id::x2, Rv_register_id::x9, 123);
 	auto result = Rv32_decoder::decode_itype(instruction);
-	EXPECT_EQ(result.opcode, Rv32i_opcode::op_imm);
+	EXPECT_EQ(result.opcode, Rv_opcode::op_imm);
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::addi));
 	EXPECT_EQ(result.rd, Rv_register_id::x2);
 	EXPECT_EQ(result.rs1, Rv_register_id::x9);
@@ -76,7 +76,7 @@ TEST(encode_auipc, ValidInstruction) {
 
 	auto instruction = Rv32_encoder::encode_auipc(Rv_register_id::x2, 0b1111'1111'1111'1111'1111'1111);
 	auto result = Rv32_decoder::decode_utype(instruction);
-	EXPECT_EQ(result.opcode, Rv32i_opcode::auipc);
+	EXPECT_EQ(result.opcode, Rv_opcode::auipc);
 	EXPECT_EQ(result.rd, Rv_register_id::x2);
 
 	// Ensure only 20 bits used for immediate
@@ -87,7 +87,7 @@ TEST(encode_lui, ValidInstruction) {
 
 	auto instruction = Rv32_encoder::encode_lui(Rv_register_id::x2, 0b1111'1111'1111'1111'1111'1111);
 	auto result = Rv32_decoder::decode_utype(instruction);
-	EXPECT_EQ(result.opcode, Rv32i_opcode::lui);
+	EXPECT_EQ(result.opcode, Rv_opcode::lui);
 	EXPECT_EQ(result.rd, Rv_register_id::x2);
 
 	// Ensure only 20 bits used for immediate
@@ -99,7 +99,7 @@ TEST(encode_slli, ValidInstruction) {
 	// Set 6 bits in shift_amount and then verify that only 5 bits are used.
 	auto instruction = Rv32_encoder::encode_slli(Rv_register_id::x2, Rv_register_id::x9, 0b111111);
 	auto result = Rv32_decoder::decode_itype(instruction);
-	EXPECT_EQ(result.opcode, Rv32i_opcode::op_imm);
+	EXPECT_EQ(result.opcode, Rv_opcode::op_imm);
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::slli));
 	EXPECT_EQ(result.rd, Rv_register_id::x2);
 	EXPECT_EQ(result.rs1, Rv_register_id::x9);
@@ -110,7 +110,7 @@ TEST(encode_slti, ValidInstruction) {
 
 	auto instruction = Rv32_encoder::encode_slti(Rv_register_id::x2, Rv_register_id::x9, 123);
 	auto result = Rv32_decoder::decode_itype(instruction);
-	EXPECT_EQ(result.opcode, Rv32i_opcode::op_imm);
+	EXPECT_EQ(result.opcode, Rv_opcode::op_imm);
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::slti));
 	EXPECT_EQ(result.rd, Rv_register_id::x2);
 	EXPECT_EQ(result.rs1, Rv_register_id::x9);
@@ -122,7 +122,7 @@ TEST(encode_srai, ValidInstruction) {
 	// Set 6 bits in shift_amount and then verify that only 5 bits are used.
 	auto instruction = Rv32_encoder::encode_srai(Rv_register_id::x2, Rv_register_id::x9, 0b111111);
 	auto result = Rv32_decoder::decode_itype(instruction);
-	EXPECT_EQ(result.opcode, Rv32i_opcode::op_imm);
+	EXPECT_EQ(result.opcode, Rv_opcode::op_imm);
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::srxi));
 	EXPECT_EQ(result.rd, Rv_register_id::x2);
 	EXPECT_EQ(result.rs1, Rv_register_id::x9);
@@ -134,7 +134,7 @@ TEST(encode_srli, ValidInstruction) {
 	// Set 6 bits in shift_amount and then verify that only 5 bits are used.
 	auto instruction = Rv32_encoder::encode_srli(Rv_register_id::x2, Rv_register_id::x9, 0b111111);
 	auto result = Rv32_decoder::decode_itype(instruction);
-	EXPECT_EQ(result.opcode, Rv32i_opcode::op_imm);
+	EXPECT_EQ(result.opcode, Rv_opcode::op_imm);
 	EXPECT_EQ(result.funct3, to_underlying(Rv32_op_imm_funct::srxi));
 	EXPECT_EQ(result.rd, Rv_register_id::x2);
 	EXPECT_EQ(result.rs1, Rv_register_id::x9);
@@ -167,29 +167,29 @@ TEST(get_register_id, InvalidRange) {
 TEST(get_opcode, ValidAndInvalidValues) {
 
 	// Map of input instruction value => expected opcode result
-	const auto test_cases = std::map<uint32_t, Rv32i_opcode>() = {
+	const auto test_cases = std::map<uint32_t, Rv_opcode>() = {
 
 		// Opcode only tests
-		{ 0b0110011, Rv32i_opcode::op },
-		{ 0b0010011, Rv32i_opcode::op_imm },
-		{ 0b0110111, Rv32i_opcode::lui },
-		{ 0b0010111, Rv32i_opcode::auipc },
-		{ 0b1101111, Rv32i_opcode::jal },
-		{ 0b1100111, Rv32i_opcode::jalr },
-		{ 0b1100011, Rv32i_opcode::branch },
-		{ 0b0000011, Rv32i_opcode::load },
-		{ 0b0100011, Rv32i_opcode::store },
-		{ 0b0001111, Rv32i_opcode::misc_mem },
-		{ 0b1110011, Rv32i_opcode::system },
+		{ 0b0110011, Rv_opcode::op },
+		{ 0b0010011, Rv_opcode::op_imm },
+		{ 0b0110111, Rv_opcode::lui },
+		{ 0b0010111, Rv_opcode::auipc },
+		{ 0b1101111, Rv_opcode::jal },
+		{ 0b1100111, Rv_opcode::jalr },
+		{ 0b1100011, Rv_opcode::branch },
+		{ 0b0000011, Rv_opcode::load },
+		{ 0b0100011, Rv_opcode::store },
+		{ 0b0001111, Rv_opcode::misc_mem },
+		{ 0b1110011, Rv_opcode::system },
 
 		// Full instruction tests
-		{ 0x00430313, Rv32i_opcode::op_imm },
+		{ 0x00430313, Rv_opcode::op_imm },
 
 		// Invalid tests
-		{ 0, Rv32i_opcode::invalid },
-		{ 0xFFFFFFFF, Rv32i_opcode::invalid },
-		{ 0x123321FF, Rv32i_opcode::invalid },
-		{ 0x12332100, Rv32i_opcode::invalid },
+		{ 0, Rv_opcode::invalid },
+		{ 0xFFFFFFFF, Rv_opcode::invalid },
+		{ 0x123321FF, Rv_opcode::invalid },
+		{ 0x12332100, Rv_opcode::invalid },
 	};
 
 	for (const auto test : test_cases) {
