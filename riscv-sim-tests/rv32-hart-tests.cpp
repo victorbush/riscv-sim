@@ -881,10 +881,8 @@ TEST(execute_auipc, ValidInstruction) {
 	auto hart = Rv32_hart(memory);
 	hart.set_register(Rv32_register_id::pc, 0x200);
 
-	// Only 20-bit immediate, ensure top bits are ignored
-	hart.execute_auipc(Rv32_register_id::x1, 0b1111'0101'1111'0101'1111'0101);
-
-	// Ensure 20-bit immediate is placed in high 20 bits
+	// Only 20-bit immediate, ensure low 12 bits are ignored
+	hart.execute_auipc(Rv32_register_id::x1, Rv_utype_imm::from_decoded(0b0101'1111'0101'1111'0101'1111'1111'1111));
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0x200 + 0b0101'1111'0101'1111'0101'0000'0000'0000);
 }
 
@@ -2103,10 +2101,8 @@ TEST(execute_lui, ValidInstruction) {
 	auto memory = Simple_memory_subsystem();
 	auto hart = Rv32_hart(memory);
 
-	// Only 20-bit immediate, ensure top bits are ignored
-	hart.execute_lui(Rv32_register_id::x1, 0b1111'0101'1111'0101'1111'0101);
-	
-	// Ensure 20-bit immediate is placed in high 20 bits
+	// Only 20-bit immediate, ensure low 12 bits are cleared
+	hart.execute_lui(Rv32_register_id::x1, Rv_utype_imm::from_decoded(0b0101'1111'0101'1111'0101'1111'1111'1111));
 	EXPECT_EQ(hart.get_register(Rv32_register_id::x1), 0b0101'1111'0101'1111'0101'0000'0000'0000);
 }
 

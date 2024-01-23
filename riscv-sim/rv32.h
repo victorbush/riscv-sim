@@ -112,21 +112,19 @@ private:
 /** 20-bit immediate value used by U-type instructions. These bits are used as the high 20 bits for a 32-bit value. */
 struct Rv_utype_imm
 {
-	/**
-	* Creates a u-type immediate value.
-	*
-	* @param encoded The encoded 20-bit immediate. The high 12 bits are ignored.
-	*/
-	Rv_utype_imm(uint32_t encoded);
+	/** Extracts a U-type immediate from an U-type instruction. */
+	static Rv_utype_imm from_instruction(uint32_t instruction);
 
-	/**
-	* Gets the decoded immediate value. The 20-bit immediate is placed in the high 20 bits of the 32-bit decoded value with the remaining bits set to 0.
-	*/
+	/** Creates a U-type immediate. The low 12 bits are set to 0. */
+	static Rv_utype_imm from_decoded(uint32_t decoded);
+
+	/** Gets the decoded immediate value. */
 	uint32_t get_decoded() const;
 
 private:
-	uint32_t _encoded;
-	uint32_t _decoded;
+	Rv_utype_imm(uint32_t encoded);
+
+	uint32_t _encoded;  // Immediate value encoded into a 32-bit instruction
 };
 
 enum class Rv32_register_id : uint8_t

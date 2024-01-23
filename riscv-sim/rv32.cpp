@@ -440,7 +440,7 @@ Rv_utype_instruction Rv32i_decoder::decode_utype(uint32_t instruction)
 	const uint8_t rd_raw = 0b1'1111 & (instruction >> 7);
 	const auto rd = get_rv32_register_id(rd_raw);
 
-	auto imm = Rv_utype_imm(instruction >> 12);
+	auto imm = Rv_utype_imm::from_instruction(instruction);
 
 	return Rv_utype_instruction(opcode, rd, imm);
 }
@@ -738,17 +738,6 @@ Rv32i_opcode Rv32i_decoder::get_rv32i_opcode(uint32_t instruction)
 	return Rv32i_opcode::invalid;
 }
 
-Rv_utype_imm::Rv_utype_imm(uint32_t encoded)
-{
-	_encoded = encoded;
-	_decoded = (encoded & 0b1111'1111'1111'1111'1111) << 12;
-}
-
-uint32_t Rv_utype_imm::get_decoded() const
-{
-	return _decoded;
-}
-
 /* ========================================================
 
 Rv_btype_imm
@@ -988,6 +977,36 @@ uint32_t Rv_stype_imm::get_encoded() const
 int32_t Rv_stype_imm::get_offset() const
 {
 	return _offset;
+}
+
+/* ========================================================
+
+Rv_utype_imm
+
+======================================================== */
+
+Rv_utype_imm Rv_utype_imm::from_instruction(uint32_t instruction)
+{
+	// Use the high 20 bits - the low 12 bits are cleared
+	auto encoded = instruction & (0b1111'1111'1111'1111'1111 << 12);
+	return Rv_utype_imm(encoded);
+}
+
+Rv_utype_imm Rv_utype_imm::from_decoded(uint32_t decoded)
+{
+	// Behaves the same as from_instruction. The low 12 bits are cleared.
+	return Rv_utype_imm::from_instruction(decoded);
+}
+
+Rv_utype_imm::Rv_utype_imm(uint32_t encoded)
+{
+	_encoded = encoded;
+}
+
+uint32_t Rv_utype_imm::get_decoded() const
+{
+	// The encoded and decoded values are the same
+	return _encoded;
 }
 
 }
