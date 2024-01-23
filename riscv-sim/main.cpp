@@ -1,10 +1,7 @@
-﻿// riscv-sim.cpp : Defines the entry point for the application.
-//
-
-#include "riscv-sim.h"
-#include "httplib.h"
+﻿#include "httplib.h"
 #include "simple-system.h"
 #include "elfio/elfio.hpp"
+#include "rv32-hart.h"
 
 #include <vector>
 #include <utility>
@@ -13,12 +10,13 @@ using namespace std;
 using namespace ELFIO;
 using namespace riscv_sim;
 
-static auto s_system = riscv_sim::Simple_system();
+static auto s_memory = Simple_memory_subsystem();
+static auto s_hart = Rv32_hart(s_memory);
 
 void print_registers()
 {
 	const auto reg = [](Rv32_register_id reg_id) {
-		return s_system.hart.get_register(reg_id);
+		return s_hart.get_register(reg_id);
 	};
 
 	const string right_pad = "   ";
@@ -79,8 +77,8 @@ void load_elf(const string& file_path)
 		cout << "Error: Only little endian is supported." << endl << endl;
 
 	// Reset system state
-	s_system.memory.reset();
-	s_system.hart.reset();
+	s_memory.reset();
+	s_hart.reset();
 
 	// Print ELF file sections info
 	Elf_Half sec_num = reader.sections.size();
@@ -99,16 +97,16 @@ void load_elf(const string& file_path)
 		// Load text section into memory
 		if (psec->get_name() == ".text") {
 			for (int j = 0; j < psec->get_size(); ++j) {
-				s_system.memory.write_8(psec->get_address() + j, *(psec->get_data() + j));
+				s_memory.write_8(psec->get_address() + j, *(psec->get_data() + j));
 			}
 		}
 	}
 
 	// Set program counter to program entry point
-	s_system.hart.set_register(riscv_sim::Rv32_register_id::pc, reader.get_entry());
+	s_hart.set_register(riscv_sim::Rv32_register_id::pc, reader.get_entry());
 
 	// Reset stack pointer to top of memory space
-	s_system.hart.set_register(riscv_sim::Rv32_register_id::sp, 0xFFFFFFFF);
+	s_hart.set_register(riscv_sim::Rv32_register_id::sp, 0xFFFFFFFF);
 
 	cout << "Loaded " << file_path << endl << endl;
 }
@@ -118,12 +116,12 @@ void execute(bool single_step)
 	try {
 		if (single_step)
 		{
-			s_system.hart.execute_next();
+			s_hart.execute_next();
 			return;
 		}
 
 		while (1) {
-			s_system.hart.execute_next();
+			s_hart.execute_next();
 		}
 	}
 	catch (const Rv_ebreak_exception& ex) {

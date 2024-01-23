@@ -4,13 +4,6 @@
 
 using namespace riscv_sim;
 
-//TEST(Simple_system, execute_rv32i_addi) {
-//	auto system = Simple_system();
-//	auto pc = system.registers[Rv32_register_id::pc];
-//	
-//	system.execute_rv32i_addi()
-//}
-
 TEST(Simple_memory_subsystem, write_32) {
 
 	auto system = Simple_memory_subsystem();
