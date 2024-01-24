@@ -95,7 +95,11 @@ void load_elf(const string& file_path)
 		const char* p = reader.sections[i]->get_data();
 
 		// Load text section into memory
-		if (psec->get_name() == ".text") {
+		if (psec->get_name() == ".text"
+			|| psec->get_name() == ".data"
+			|| psec->get_name() == ".rodata"
+			|| psec->get_name() == ".bss"
+			) {
 			for (int j = 0; j < psec->get_size(); ++j) {
 				s_memory.write_8(psec->get_address() + j, *(psec->get_data() + j));
 			}
