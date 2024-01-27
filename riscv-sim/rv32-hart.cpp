@@ -364,8 +364,7 @@ void Rv32_hart::execute_ebreak(Rv_register_id rd, Rv_register_id rs1, Rv_itype_i
 
 void Rv32_hart::execute_ecall(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)
 {
-	// ECALL is a NOP in this implementation.
-	return;
+	throw Rv_ecall_exception();
 }
 
 void Rv32_hart::execute_fence(Rv_register_id rd, Rv_register_id rs1, Rv_itype_imm imm)

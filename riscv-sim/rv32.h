@@ -13,6 +13,14 @@ class Rv_ebreak_exception : public std::exception
 	}
 };
 
+class Rv_ecall_exception : public std::exception
+{
+	const char* what() const override
+	{
+		return "ecall";
+	}
+};
+
 /** 12-bit immediate value used by B-type instructions. */
 struct Rv_btype_imm
 {
