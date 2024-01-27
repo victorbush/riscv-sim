@@ -2,9 +2,11 @@
 #include "simple-system.h"
 #include "elfio/elfio.hpp"
 #include "rv32-hart.h"
+#include "rv-disassembler.h"
 
-#include <vector>
+#include <set>
 #include <utility>
+#include <vector>
 
 using namespace std;
 using namespace ELFIO;
@@ -12,6 +14,37 @@ using namespace riscv_sim;
 
 static auto s_memory = Simple_memory_subsystem();
 static auto s_hart = Rv32_hart(s_memory);
+
+static auto s_program_name_to_path = map<string, string>() = {
+	{ "c-printf-newlib", "../../../../examples/c-printf-newlib/program.elf" }
+};
+
+
+static auto s_breakpoints = set<uint32_t>();
+
+void print_next_instruction(Rv32_hart& hart)
+{
+	uint32_t pc = hart.get_register(Rv_register_id::pc);
+	uint32_t instruction = s_memory.read_32(pc);
+	auto result = Rv_disassembler::disassemble(instruction);
+
+	const string& mnemonic = Rv_disassembler::get_mnemonic(result.type);
+	cout << "Next instruction:\t" << hex << pc << "\t" << mnemonic << "     ";
+
+	if (result.rd != Rv_register_id::_unused)
+		cout << Rv_disassembler::get_register_abi_name(result.rd) << ", ";
+
+	if (result.rs1 != Rv_register_id::_unused)
+		cout << Rv_disassembler::get_register_abi_name(result.rs1) << ", ";
+
+	if (result.rs2 != Rv_register_id::_unused)
+		cout << Rv_disassembler::get_register_abi_name(result.rs2) << ", ";
+
+	if (result.format != Rv32_instruction_format::rtype)
+		cout << hex << result.imm;
+
+	cout << endl;
+}
 
 void print_registers()
 {
@@ -89,19 +122,22 @@ void load_elf(const string& file_path)
 			<< psec->get_name()
 			<< "\t"
 			<< psec->get_size()
+			<< "\t"
+			<< hex << psec->get_address()
+			<< "\t"
+			<< hex << psec->get_flags()
 			<< std::endl;
 
-		// Access section's data
-		const char* p = reader.sections[i]->get_data();
+		// Load any sections into memory with the ALLOC flag
+		if (psec->get_flags() & SHF_ALLOC) {
 
-		// Load text section into memory
-		if (psec->get_name() == ".text"
-			|| psec->get_name() == ".data"
-			|| psec->get_name() == ".rodata"
-			|| psec->get_name() == ".bss"
-			) {
+			// Access section's data
+			const char* section_data = reader.sections[i]->get_data();
+			if (!section_data)
+				continue;
+
 			for (int j = 0; j < psec->get_size(); ++j) {
-				s_memory.write_8(psec->get_address() + j, *(psec->get_data() + j));
+				s_memory.write_8(psec->get_address() + j, *(section_data + j));
 			}
 		}
 	}
@@ -113,19 +149,31 @@ void load_elf(const string& file_path)
 	s_hart.set_register(riscv_sim::Rv_register_id::sp, 0xFFFFFFFF);
 
 	cout << "Loaded " << file_path << endl << endl;
+
+	print_next_instruction(s_hart);
 }
 
 void execute(bool single_step)
 {
 	try {
-		if (single_step)
-		{
-			s_hart.execute_next();
-			return;
-		}
-
 		while (1) {
 			s_hart.execute_next();
+
+			uint32_t pc = s_hart.get_register(Rv_register_id::pc);
+			if (s_breakpoints.contains(pc))
+			{
+				print_registers();
+				print_next_instruction(s_hart);
+				cout << "BREAKPOINT: " << hex << pc << endl;
+				return;
+			}
+
+			if (single_step)
+			{
+				print_registers();
+				print_next_instruction(s_hart);
+				return;
+			}
 		}
 	}
 	catch (const Rv_ebreak_exception& ex) {
@@ -144,8 +192,6 @@ bool prompt()
 
 	if (command == "step") {
 		execute(true);
-		print_registers();
-		return true;
 	}
 	else if (command == "exit") {
 		return false;
@@ -153,17 +199,29 @@ bool prompt()
 	else if (command == "load") {
 		string file_path;
 		cin >> file_path;
-		load_elf(file_path);
-		return true;
+
+		if (s_program_name_to_path.contains(file_path))
+			load_elf(s_program_name_to_path.at(file_path));
+		else
+			load_elf(file_path);
 	}
 	else if (command == "run") {
 		execute(false);
-		return true;
+	}
+	else if (command == "break") {
+		uint32_t addr;
+		cin >> hex >> addr;
+
+		if (s_breakpoints.contains(addr))
+			s_breakpoints.erase(addr);
+		else
+			s_breakpoints.insert(addr);
 	}
 	else {
 		cout << "Unknown command: " << command << endl << endl;
-		return true;
 	}
+
+	return true;
 }
 
 int main()

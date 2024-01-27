@@ -5,6 +5,7 @@ add_executable (riscv-sim
 	"memory.h"
 	"rv32.cpp" "rv32.h"
 	"rv32-hart.cpp" "rv32-hart.h"
+	"rv-disassembler.cpp" "rv-disassembler.h"
 	"simple-system.cpp" "simple-system.h"
 	"../third-party/cpp-httplib/httplib.h"
 )
