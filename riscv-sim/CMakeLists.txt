@@ -7,9 +7,8 @@ add_executable (riscv-sim
 	"rv32-hart.cpp" "rv32-hart.h"
 	"rv-disassembler.cpp" "rv-disassembler.h"
 	"simple-system.cpp" "simple-system.h"
-	"../third-party/cpp-httplib/httplib.h"
 )
 
-target_include_directories(riscv-sim PRIVATE "../third-party/cpp-httplib" "../third-party")
+target_include_directories(riscv-sim PRIVATE "../third-party")
 
 set_property(TARGET riscv-sim PROPERTY CXX_STANDARD 23)
