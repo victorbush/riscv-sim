@@ -31,19 +31,30 @@ void print_next_instruction(Rv32_hart& hart)
 	auto result = Rv_disassembler::disassemble(instruction);
 
 	const string& mnemonic = Rv_disassembler::get_mnemonic(result.type);
-	cout << "Next instruction:\t" << hex << pc << "\t" << mnemonic << "     ";
+	cout << "Next instruction: " << hex << "(" << pc << ")" << "     " << mnemonic << " ";
+
+	bool need_comma = false;
 
 	if (result.rd != Rv_register_id::_unused)
-		cout << Rv_disassembler::get_register_abi_name(result.rd) << ", ";
+	{
+		cout << Rv_disassembler::get_register_abi_name(result.rd);
+		need_comma = true;
+	}
 
 	if (result.rs1 != Rv_register_id::_unused)
-		cout << Rv_disassembler::get_register_abi_name(result.rs1) << ", ";
+	{
+		cout << (need_comma ? ", " : "") << Rv_disassembler::get_register_abi_name(result.rs1);
+		need_comma = true;
+	}
 
 	if (result.rs2 != Rv_register_id::_unused)
-		cout << Rv_disassembler::get_register_abi_name(result.rs2) << ", ";
+	{
+		cout << (need_comma ? ", " : "") << Rv_disassembler::get_register_abi_name(result.rs2);
+		need_comma = true;
+	}
 
 	if (result.format != Rv32_instruction_format::rtype)
-		cout << hex << result.imm;
+		cout << (need_comma ? ", " : "") << hex << result.imm;
 
 	cout << endl;
 }
@@ -54,7 +65,7 @@ void print_registers()
 		return s_hart.get_register(reg_id);
 	};
 
-	const string right_pad = "   ";
+	const string right_pad = "  |  ";
 
 	cout << hex
 		<< "x0 (zero) " << setfill('0') << setw(8) << reg(Rv_register_id::x0) << right_pad

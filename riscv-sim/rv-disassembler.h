@@ -12,7 +12,7 @@ struct Rv_disassembled_instruction {
 	Rv_register_id rd;
 	Rv_register_id rs1;
 	Rv_register_id rs2;
-	int64_t imm;
+	uint32_t imm;
 };
 
 class Rv_disassembler

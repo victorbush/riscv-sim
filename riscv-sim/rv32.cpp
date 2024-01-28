@@ -10,12 +10,12 @@ using namespace std;
 
 namespace riscv_sim {
 
-const uint32_t rv32i_rtype_mask = 0b1111111'00000'00000'111'00000'1111111;
-const uint32_t rv32i_itype_mask = 0b000000000000'00000'111'00000'1111111;
-const uint32_t rv32i_stype_mask = rv32i_itype_mask;
-const uint32_t rv32i_btype_mask = rv32i_itype_mask;
-const uint32_t rv32i_utype_mask = 0b00000000000000000000'00000'1111111;
-const uint32_t rv32i_jtype_mask = rv32i_utype_mask;
+constexpr uint32_t rv32i_rtype_mask = 0b1111111'00000'00000'111'00000'1111111;
+constexpr uint32_t rv32i_itype_mask = 0b000000000000'00000'111'00000'1111111;
+constexpr uint32_t rv32i_stype_mask = rv32i_itype_mask;
+constexpr uint32_t rv32i_btype_mask = rv32i_itype_mask;
+constexpr uint32_t rv32i_utype_mask = 0b00000000000000000000'00000'1111111;
+constexpr uint32_t rv32i_jtype_mask = rv32i_utype_mask;
 
 static uint32_t create_rtype_signature(Rv_opcode opcode, uint8_t funct3, uint8_t funct7)
 {

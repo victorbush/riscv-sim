@@ -9,6 +9,8 @@ namespace riscv_sim {
 
 typedef Rv_disassembled_instruction(*disassembly_func)(uint32_t instruction, Rv32i_instruction_type type);
 
+static constexpr string c_unknown = "unknown";
+
 static Rv_disassembled_instruction disassemble_btype(uint32_t instruction, Rv32i_instruction_type type)
 {
 	auto btype = Rv32_decoder::decode_btype(instruction);
@@ -34,6 +36,62 @@ static Rv_disassembled_instruction disassemble_itype(uint32_t instruction, Rv32i
 	dis.rs1 = itype.rs1;
 	dis.rs2 = Rv_register_id::_unused;
 	dis.imm = itype.imm.get_signed();
+	return dis;
+}
+
+static Rv_disassembled_instruction disassemble_jtype(uint32_t instruction, Rv32i_instruction_type type)
+{
+	auto jtype = Rv32_decoder::decode_jtype(instruction);
+
+	auto dis = Rv_disassembled_instruction();
+	dis.type = type;
+	dis.format = Rv32_instruction_format::jtype;
+	dis.rd = jtype.rd;
+	dis.rs1 = Rv_register_id::_unused;
+	dis.rs2 = Rv_register_id::_unused;
+	dis.imm = jtype.imm.get_offset();
+	return dis;
+}
+
+static Rv_disassembled_instruction disassemble_rtype(uint32_t instruction, Rv32i_instruction_type type)
+{
+	auto rtype = Rv32_decoder::decode_rtype(instruction);
+
+	auto dis = Rv_disassembled_instruction();
+	dis.type = type;
+	dis.format = Rv32_instruction_format::rtype;
+	dis.rd = rtype.rd;
+	dis.rs1 = rtype.rs1;
+	dis.rs2 = rtype.rs2;
+	dis.imm = 0;
+	return dis;
+}
+
+static Rv_disassembled_instruction disassemble_stype(uint32_t instruction, Rv32i_instruction_type type)
+{
+	auto stype = Rv32_decoder::decode_stype(instruction);
+
+	auto dis = Rv_disassembled_instruction();
+	dis.type = type;
+	dis.format = Rv32_instruction_format::stype;
+	dis.rd = Rv_register_id::_unused;
+	dis.rs1 = stype.rs1;
+	dis.rs2 = stype.rs2;
+	dis.imm = stype.imm.get_offset();
+	return dis;
+}
+
+static Rv_disassembled_instruction disassemble_utype(uint32_t instruction, Rv32i_instruction_type type)
+{
+	auto utype = Rv32_decoder::decode_utype(instruction);
+
+	auto dis = Rv_disassembled_instruction();
+	dis.type = type;
+	dis.format = Rv32_instruction_format::utype;
+	dis.rd = utype.rd;
+	dis.rs1 = Rv_register_id::_unused;
+	dis.rs2 = Rv_register_id::_unused;
+	dis.imm = utype.imm.get_decoded();
 	return dis;
 }
 
@@ -83,33 +141,32 @@ static const map<Rv32i_instruction_type, disassembly_func> s_disassembly_func_ma
 
 	// J-type
 
-	//{ Rv32i_instruction_type::jal, &Rv32_hart::execute_jal },
+	{ Rv32i_instruction_type::jal, &disassemble_jtype },
 
-	//// R-type
+	// R-type
 
-	//{ Rv32i_instruction_type::add, &Rv32_hart::execute_add },
-	//{ Rv32i_instruction_type::and_, &Rv32_hart::execute_and },
-	//{ Rv32i_instruction_type::or_, &Rv32_hart::execute_or },
-	//{ Rv32i_instruction_type::sub, &Rv32_hart::execute_sub },
-	//{ Rv32i_instruction_type::sll, &Rv32_hart::execute_sll },
-	//{ Rv32i_instruction_type::slt, &Rv32_hart::execute_slt },
-	//{ Rv32i_instruction_type::sltu, &Rv32_hart::execute_sltu },
-	//{ Rv32i_instruction_type::sra, &Rv32_hart::execute_sra },
-	//{ Rv32i_instruction_type::srl, &Rv32_hart::execute_srl },
-	//{ Rv32i_instruction_type::xor_, &Rv32_hart::execute_xor },
+	{ Rv32i_instruction_type::add, &disassemble_rtype },
+	{ Rv32i_instruction_type::and_, &disassemble_rtype },
+	{ Rv32i_instruction_type::or_, &disassemble_rtype },
+	{ Rv32i_instruction_type::sub, &disassemble_rtype },
+	{ Rv32i_instruction_type::sll, &disassemble_rtype },
+	{ Rv32i_instruction_type::slt, &disassemble_rtype },
+	{ Rv32i_instruction_type::sltu, &disassemble_rtype },
+	{ Rv32i_instruction_type::sra, &disassemble_rtype },
+	{ Rv32i_instruction_type::srl, &disassemble_rtype },
+	{ Rv32i_instruction_type::xor_, &disassemble_rtype },
 
-	//// S-type
+	// S-type
 
-	//{ Rv32i_instruction_type::sb, &Rv32_hart::execute_sb },
-	//{ Rv32i_instruction_type::sh, &Rv32_hart::execute_sh },
-	//{ Rv32i_instruction_type::sw, &Rv32_hart::execute_sw },
+	{ Rv32i_instruction_type::sb, &disassemble_stype },
+	{ Rv32i_instruction_type::sh, &disassemble_stype },
+	{ Rv32i_instruction_type::sw, &disassemble_stype },
 
-	//// U-type
+	// U-type
 
-	//{ Rv32i_instruction_type::auipc, &Rv32_hart::execute_auipc },
-	//{ Rv32i_instruction_type::lui, &Rv32_hart::execute_lui },
+	{ Rv32i_instruction_type::auipc, &disassemble_utype },
+	{ Rv32i_instruction_type::lui, &disassemble_utype },
 };
-
 
 static const map<Rv32i_instruction_type, string> s_mnemonic_map = {
 
@@ -240,12 +297,12 @@ Rv_disassembled_instruction Rv_disassembler::disassemble(uint32_t instruction)
 	return disassembler(instruction, type);
 }
 
-const string& riscv_sim::Rv_disassembler::get_mnemonic(Rv32i_instruction_type type)
+const string& Rv_disassembler::get_mnemonic(Rv32i_instruction_type type)
 {
 	if (s_mnemonic_map.contains(type))
 		return s_mnemonic_map.at(type);
 
-	return "unknown";
+	return c_unknown;
 }
 
 const string& Rv_disassembler::get_register_abi_name(Rv_register_id reg)
@@ -253,7 +310,7 @@ const string& Rv_disassembler::get_register_abi_name(Rv_register_id reg)
 	if (s_register_abi_name_map.contains(reg))
 		return s_register_abi_name_map.at(reg);
 
-	return "unknown";
+	return c_unknown;
 }
 
 }
