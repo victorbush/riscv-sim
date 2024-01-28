@@ -7,7 +7,7 @@ namespace riscv_sim {
 
 class Rv_ebreak_exception : public std::exception
 {
-	const char* what() const override
+	const char* what() const noexcept override
 	{
 		return "ebreak";
 	}
@@ -15,7 +15,7 @@ class Rv_ebreak_exception : public std::exception
 
 class Rv_ecall_exception : public std::exception
 {
-	const char* what() const override
+	const char* what() const noexcept override
 	{
 		return "ecall";
 	}
