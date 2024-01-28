@@ -2,6 +2,7 @@
 
 #include <array>
 #include <map>
+#include <stdexcept>
 #include <vector>
 #include <utility>
 
@@ -263,7 +264,7 @@ Rv_btype_instruction Rv32_decoder::decode_btype(uint32_t instruction)
 
 	const auto opcode = get_opcode(instruction);
 	if (opcode == Rv_opcode::invalid)
-		throw exception("Invalid instruction.");
+		throw runtime_error("Invalid instruction.");
 
 	const uint8_t funct3 = 0b111 & (instruction >> 12);
 
@@ -285,7 +286,7 @@ Rv_itype_instruction Rv32_decoder::decode_itype(uint32_t instruction)
 
 	const auto opcode = get_opcode(instruction);
 	if (opcode == Rv_opcode::invalid)
-		throw exception("Invalid instruction.");
+		throw runtime_error("Invalid instruction.");
 
 	const uint8_t rd_raw = 0b1'1111 & (instruction >> 7);
 	const auto rd = get_register_id(rd_raw);
@@ -307,7 +308,7 @@ Rv_jtype_instruction Rv32_decoder::decode_jtype(uint32_t instruction)
 
 	const auto opcode = get_opcode(instruction);
 	if (opcode == Rv_opcode::invalid)
-		throw exception("Invalid instruction.");
+		throw runtime_error("Invalid instruction.");
 
 	const uint8_t rd_raw = 0b1'1111 & (instruction >> 7);
 	const auto rd = get_register_id(rd_raw);
@@ -324,7 +325,7 @@ Rv_rtype_instruction Rv32_decoder::decode_rtype(uint32_t instruction)
 
 	const auto opcode = get_opcode(instruction);
 	if (opcode == Rv_opcode::invalid)
-		throw exception("Invalid instruction.");
+		throw runtime_error("Invalid instruction.");
 
 	const uint8_t funct7 = 0b111'1111 & (instruction >> 25);
 
@@ -349,7 +350,7 @@ Rv_stype_instruction Rv32_decoder::decode_stype(uint32_t instruction)
 
 	const auto opcode = get_opcode(instruction);
 	if (opcode == Rv_opcode::invalid)
-		throw exception("Invalid instruction.");
+		throw runtime_error("Invalid instruction.");
 
 	const auto imm = Rv_stype_imm::from_instruction(instruction);
 
@@ -371,7 +372,7 @@ Rv_utype_instruction Rv32_decoder::decode_utype(uint32_t instruction)
 
 	const auto opcode = get_opcode(instruction);
 	if (opcode == Rv_opcode::invalid)
-		throw exception("Invalid instruction.");
+		throw runtime_error("Invalid instruction.");
 
 	const uint8_t rd_raw = 0b1'1111 & (instruction >> 7);
 	const auto rd = get_register_id(rd_raw);
@@ -716,11 +717,11 @@ Rv_btype_imm Rv_btype_imm::from_offset(int32_t offset)
 {
 	// Offsets must be multiples of 2
 	if (offset & 1)
-		throw exception("Conditional branch offsets must be multiples of 2.");
+		throw runtime_error("Conditional branch offsets must be multiples of 2.");
 
 	// Offsets must fall in the range [-4096, 4094]
 	if (offset < -4096 || offset > 4094)
-		throw exception("Conditional branch offsets must fall in the range [-4096, 4094].");
+		throw runtime_error("Conditional branch offsets must fall in the range [-4096, 4094].");
 
 	const auto inst_bit_7 = ((offset >> 11) & 1) << 7;
 	const auto inst_bit_8to11 = ((offset >> 1) & 0b1111) << 8;
@@ -764,7 +765,7 @@ Rv_itype_imm Rv_itype_imm::from_signed(int16_t immediate)
 	// Immediate value is 12 bits only.
 	// Valid signed range: [-2048, 2047]
 	if (immediate < -2048 || immediate > 2047)
-		throw exception("Signed I-immediates must fall in the range [-2048, 2047].");
+		throw runtime_error("Signed I-immediates must fall in the range [-2048, 2047].");
 
 	return Rv_itype_imm(0b1111'1111'1111 & immediate);
 }
@@ -774,7 +775,7 @@ Rv_itype_imm Rv_itype_imm::from_unsigned(uint16_t immediate)
 	// Immediate value is 12 bits only.
 	// Valid unsigned range: [0, 4095]
 	if (immediate > 4095)
-		throw exception("Unsigned I-immediates must fall in the range [0, 4095].");
+		throw runtime_error("Unsigned I-immediates must fall in the range [0, 4095].");
 
 	return Rv_itype_imm(0b1111'1111'1111 & immediate);
 }
@@ -839,11 +840,11 @@ Rv_jtype_imm Rv_jtype_imm::from_offset(int32_t offset)
 {
 	// Offsets must be multiples of 2
 	if (offset & 1)
-		throw exception("J-type offsets must be multiples of 2.");
+		throw runtime_error("J-type offsets must be multiples of 2.");
 
 	// Offsets must fall in the range [-1048576, 1048574]
 	if (offset < -1048576 || offset > 1048574)
-		throw exception("J-type offsets must fall in the range [-1048576, 1048574].");
+		throw runtime_error("J-type offsets must fall in the range [-1048576, 1048574].");
 
 	const auto encoded_bits_12to19 = (offset & 0b0000'0000'0000'1111'1111'0000'0000'0000);
 	const auto encoded_bits_20 = (offset & (1 << 11)) << 9;
@@ -896,7 +897,7 @@ Rv_stype_imm Rv_stype_imm::from_offset(int32_t offset)
 {
 	// Valid signed range: [-2048, 2047]
 	if (offset < -2048 || offset > 2047)
-		throw exception("S-immediates must fall in the range [-2048, 2047].");
+		throw runtime_error("S-immediates must fall in the range [-2048, 2047].");
 
 	const auto encoded_bits_7to11 = offset & 0b11111;
 	const auto encoded_bits_25to31 = (offset >> 5) & 0b1111111;

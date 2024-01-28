@@ -1,5 +1,6 @@
-#include <exception>
 #include <map>
+#include <stdexcept>
+#include <utility>
 
 #include "rv32.h"
 #include "rv32-hart.h"
@@ -17,7 +18,7 @@ target address is not aligned to a four-byte boundary.
 */
 #define throw_if_branch_target_misaligned(address) \
 if (( address ) % 4 != 0) \
-	throw exception("instruction-address-misaligned");
+	throw runtime_error("instruction-address-misaligned");
 
 namespace riscv_sim {
 
@@ -141,10 +142,10 @@ void Rv32_hart::execute_next()
 	auto next_inst_type = Rv32_decoder::decode_instruction_type(next_inst);
 
 	if (next_inst_type == Rv32i_instruction_type::invalid)
-		throw exception("Invalid instruction.");
+		throw runtime_error("Invalid instruction.");
 
 	if (!instruction_executor_map.contains(next_inst_type))
-		throw exception("Not implemented.");
+		throw runtime_error("Not implemented.");
 
 	auto& executor = instruction_executor_map.at(next_inst_type);
 	switch (executor.format)
@@ -192,7 +193,7 @@ void Rv32_hart::execute_next()
 	}
 
 	default:
-		throw exception("Not implemented.");
+		throw runtime_error("Not implemented.");
 	}
 
 	// Certain instructions (i.e., branches) handle updating the PC register manually.
