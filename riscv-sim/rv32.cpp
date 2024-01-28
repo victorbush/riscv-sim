@@ -432,7 +432,7 @@ uint32_t Rv32_encoder::encode_load(Rv32_load_funct3 funct3, Rv_register_id rd, R
 
 uint32_t Rv32_encoder::encode_miscmem(Rv32_miscmem_funct3 funct3, Rv_register_id rs1, Rv_register_id rd, Rv_itype_imm imm)
 {
-	return encode_itype(Rv_opcode::system, to_underlying(funct3), rs1, rd, imm);
+	return encode_itype(Rv_opcode::misc_mem, to_underlying(funct3), rs1, rd, imm);
 }
 
 uint32_t Rv32_encoder::encode_utype(Rv_opcode opcode, Rv_register_id rd, uint32_t imm)
